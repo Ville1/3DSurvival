@@ -32,4 +32,18 @@ public class Entity : MapObject {
         base.Delete();
         Map.Instance.Remove_Entity(this);
     }
+
+    public CollisionBehaviour Collision_Data
+    {
+        get {
+            return GameObject == null ? null : GameObject.GetComponentInChildren<CollisionBehaviour>();
+        }
+    }
+
+    protected Rigidbody Rigidbody
+    {
+        get {
+            return GameObject == null ? null : GameObject.GetComponentInChildren<Rigidbody>();
+        }
+    }
 }

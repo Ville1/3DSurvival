@@ -81,6 +81,7 @@
     <Compile Include="Assets\src\ConsoleScriptManager.cs" />
     <Compile Include="Assets\src\Coordinates.cs" />
     <Compile Include="Assets\src\CustomLogger.cs" />
+    <Compile Include="Assets\src\Direction.cs" />
     <Compile Include="Assets\src\Helper.cs" />
     <Compile Include="Assets\src\Items\Item.cs" />
     <Compile Include="Assets\src\Items\Perishable.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="Assets\src\UI\MenuManager.cs" />
     <Compile Include="Assets\src\UI\MessageManager.cs" />
     <Compile Include="Assets\src\UI\MouseManager.cs" />
+    <Compile Include="Assets\src\UI\ScrollableList.cs" />
     <Compile Include="Assets\src\UI\TooltipManager.cs" />
     <Compile Include="Assets\src\World\Block.cs" />
     <Compile Include="Assets\src\World\BlockPrototypes.cs" />

@@ -3,8 +3,8 @@
 public class MouseManager : MonoBehaviour
 {
     public static MouseManager Instance { get; private set; }
-
-    private Vector3 last_position;
+    
+    private bool cursor_visibility;
 
     /// <summary>
     /// Initialization
@@ -16,6 +16,10 @@ public class MouseManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        cursor_visibility = true;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     /// <summary>
@@ -23,9 +27,9 @@ public class MouseManager : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        Vector3 current_position = CameraManager.Instance.Camera.ScreenToWorldPoint(Mouse_Position_Relative_To_Camera);
-
-        last_position = CameraManager.Instance.Camera.ScreenToWorldPoint(Mouse_Position_Relative_To_Camera);
+        if (!Show_Cursor) {
+            CameraManager.Instance.Rotate_Camera(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
+        }
     }
 
     public Vector3 Mouse_Position_Relative_To_Camera
@@ -34,6 +38,18 @@ public class MouseManager : MonoBehaviour
             Vector3 position = Input.mousePosition;
             position.z = CameraManager.Instance.Camera.transform.position.z;
             return position;
+        }
+    }
+
+    public bool Show_Cursor
+    {
+        get {
+            return cursor_visibility;
+        }
+        set {
+            cursor_visibility = value;
+            Cursor.visible = cursor_visibility;
+            Cursor.lockState = cursor_visibility ? CursorLockMode.None : CursorLockMode.Locked;
         }
     }
 

@@ -78,11 +78,13 @@ public class Map {
             CustomLogger.Instance.Error("Player spawn not found");
         }
 
-        Player prototype_player = new Player("Player 1", "Player");
+        Player prototype_player = new Player("Player 1", "Player", 1.0f, 1.0f);
         Player player = new Player(player_spawn.Position, prototype_player, entity_container);
-        Players.Add(player);
+        entities.Add(player);
 
         active = true;
+        CameraManager.Instance.Reset();
+        MouseManager.Instance.Show_Cursor = false;
     }
 
     public void Update(float delta_time)
@@ -94,6 +96,9 @@ public class Map {
         foreach (Entity entity in entities) {
             if (entity is Player) {
                 (entity as Player).Update(delta_time + stopwatch.ElapsedMilliseconds * 0.001f);
+                if(entity.Position.y < -100.0f) {
+                    entity.Position = player_spawn.Position;
+                }
             } else if (entity is Mob) {
                 (entity as Mob).Update(delta_time + stopwatch.ElapsedMilliseconds * 0.001f);
             } else {

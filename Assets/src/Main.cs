@@ -23,7 +23,7 @@ public class Main : MonoBehaviour
     /// </summary>
     private void Update()
     {
-
+        Map.Instance.Update(Time.deltaTime);
     }
 
     /// <summary>

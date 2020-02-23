@@ -3,9 +3,14 @@ using UnityEngine;
 
 public class CameraManager
 {
+    public static readonly float MIN_ROTATION = -80.0f;
+    public static readonly float MAX_ROTATION = 60.0f;
+
     private static CameraManager instance;
     private Camera camera;
     private GameObject canvas;
+
+    private float temp_1 = float.MaxValue;
 
     private CameraManager()
     {
@@ -26,14 +31,28 @@ public class CameraManager
         }
     }
     
-    /// <summary>
-    /// Sets the camera to a new location
-    /// </summary>
-    /// <param name="location"></param>
-    /// <returns></returns>
-    public void Set_Camera_Location(Vector2 location)
+    public void Reset()
     {
-        camera.transform.position = new Vector3(location.x, location.y, camera.transform.position.z);
+        camera = Player.Current != null ? Player.Current.Camera : Camera.main;
+    }
+
+    public void Rotate_Camera(float x, float y)
+    {
+        if(Player.Current == null || (x == 0.0f && y == 0.0f)) {
+            return;
+        }
+        if (x != 0.0f) {
+            Player.Current.GameObject.transform.Rotate(new Vector3(0.0f, x, 0.0f));
+        }
+        if (y != 0.0f) {
+            Player.Current.Camera.transform.Rotate(new Vector3(-y, 0.0f, 0.0f));
+            if (Player.Current.Camera.transform.rotation.eulerAngles.x > MAX_ROTATION && Player.Current.Camera.transform.rotation.eulerAngles.x < 180) {
+                Player.Current.Camera.transform.eulerAngles = new Vector3(MAX_ROTATION, Player.Current.Camera.transform.rotation.eulerAngles.y, Player.Current.Camera.transform.rotation.eulerAngles.z);
+            }
+            if (Player.Current.Camera.transform.rotation.eulerAngles.x < 360.0f + MIN_ROTATION && Player.Current.Camera.transform.rotation.eulerAngles.x > 180) {
+                Player.Current.Camera.transform.eulerAngles = new Vector3(360.0f + MIN_ROTATION, Player.Current.Camera.transform.rotation.eulerAngles.y, Player.Current.Camera.transform.rotation.eulerAngles.z);
+            }
+        }
     }
 
     /// <summary>

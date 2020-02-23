@@ -41,6 +41,20 @@ public class Block : MapObject {
         Inactive_GameObject = inactive;
     }
 
+    public static long? Parse_Id_From_GameObject_Name(string name)
+    {
+        if(!name.Contains(GAME_OBJECT_NAME_PREFIX) || !name.Contains("#")) {
+            return null;
+        }
+        long id = 0;
+        string sub = name.Substring(name.IndexOf("#") + 1);
+        if (!long.TryParse(sub.Substring(0, sub.IndexOf("_")), out id)) {
+            CustomLogger.Instance.Error(string.Format("Error parsing string: {0}", name));
+            return null;
+        }
+        return id;
+    }
+
     private void Change_To(Block prototype, bool update_material = true)
     {
         Name = prototype.Name;

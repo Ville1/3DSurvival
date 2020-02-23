@@ -25,28 +25,34 @@ public class KeyboardManager : MonoBehaviour
             ConsoleManager.Instance.Toggle_Console();
         }
 
+        if (Input.GetButtonDown("Escape")) {
+            MainMenuManager.Instance.Visible = true;
+        }
+
         if (Input.anyKeyDown && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1) && !Input.GetMouseButtonDown(2)) {
             MessageManager.Instance.Close_Message();
         }
 
         if (!MasterUIManager.Instance.Intercept_Keyboard_Input) {
-
-
-            //Move player
-            /*if (Input.GetAxis("Vertical") > 0.0f) {
-                CameraManager.Instance.Move_Camera(World.Direction.North);
+            if(Player.Current != null) {
+                //Movement
+                Player.Current.Current_Movement = new Direction();
+                if (Input.GetAxis("Vertical") > 0.0f) {
+                    Player.Current.Current_Movement.X = Direction.Shift.Positive;
+                }
+                if (Input.GetAxis("Vertical") < 0.0f) {
+                    Player.Current.Current_Movement.X = Direction.Shift.Negative;
+                }
+                if (Input.GetAxis("Horizontal") > 0.0f) {
+                    Player.Current.Current_Movement.Z = Direction.Shift.Positive;
+                }
+                if (Input.GetAxis("Horizontal") < 0.0f) {
+                    Player.Current.Current_Movement.Z = Direction.Shift.Negative;
+                }
+                if (Input.GetButtonDown("Jump")) {
+                    Player.Current.Current_Movement.Y = Direction.Shift.Positive;
+                }
             }
-            if (Input.GetAxis("Horizontal") < 0.0f) {
-                CameraManager.Instance.Move_Camera(World.Direction.West);
-            }
-            if (Input.GetAxis("Vertical") < 0.0f) {
-                CameraManager.Instance.Move_Camera(World.Direction.South);
-            }
-            if (Input.GetAxis("Horizontal") > 0.0f) {
-                CameraManager.Instance.Move_Camera(World.Direction.East);
-            }*/
-
-
         } else {
             MasterUIManager.Instance.Read_Keyboard_Input();
         }
