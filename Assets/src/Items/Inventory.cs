@@ -50,6 +50,8 @@ public class Inventory : IEnumerable<Item> {
         foreach (Item item in items) {
             clone.items.Add(ItemPrototypes.Instance.Get_Item(item.Internal_Name));
         }
+        clone.Max_Weight = Max_Weight;
+        clone.Max_Volyme = Max_Volyme;
         return clone;
     }
 
@@ -98,6 +100,11 @@ public class Inventory : IEnumerable<Item> {
     public void Remove(Item item)
     {
         items.Remove(item);
+    }
+
+    public List<Item> Get_Items(string internal_name)
+    {
+        return items.Where(x => x.Internal_Name == internal_name).ToList();
     }
 
     public bool Is_Empty

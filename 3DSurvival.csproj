@@ -102,6 +102,7 @@
     <Compile Include="Assets\src\UI\ConsoleManager.cs" />
     <Compile Include="Assets\src\UI\FloatingMessageManager.cs" />
     <Compile Include="Assets\src\UI\InspectorManager.cs" />
+    <Compile Include="Assets\src\UI\InventoryGUIManager.cs" />
     <Compile Include="Assets\src\UI\KeyboardManager.cs" />
     <Compile Include="Assets\src\UI\MainMenuManager.cs" />
     <Compile Include="Assets\src\UI\MasterUIManager.cs" />

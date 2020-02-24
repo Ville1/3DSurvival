@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class MouseManager : MonoBehaviour
 {
@@ -60,6 +61,9 @@ public class MouseManager : MonoBehaviour
     public MapObject Object_Under_Cursor
     {
         get {
+            if (EventSystem.current.IsPointerOverGameObject()) {
+                return null;
+            }
             RaycastHit hit;
             if (Physics.Raycast(CameraManager.Instance.Camera.ScreenPointToRay(Input.mousePosition), out hit)) {
                 string name = hit.transform.gameObject.name;

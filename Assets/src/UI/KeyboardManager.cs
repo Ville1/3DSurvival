@@ -72,6 +72,9 @@ public class KeyboardManager : MonoBehaviour
                         }
                     }
                 }
+                if (Input.GetButtonDown("Inventory")) {
+                    InventoryGUIManager.Instance.Toggle();
+                }
             }
         } else {
             MasterUIManager.Instance.Read_Keyboard_Input();

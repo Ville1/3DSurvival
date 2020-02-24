@@ -43,10 +43,10 @@ public class Player : Mob
     {
         get {
             return new Player("Player 1", "Player", 1.0f, 1.0f, 50, new List<Skill>() { new Skill("Mining", Skill.SkillId.Mining, 3), new Skill("Masonry", Skill.SkillId.Masonry, 1) }, new Dictionary<string, int>() {
-                { "stone", 10 },
-                { "dev_hammer", 1 },
+                { "stone", 2 },
+                { "dev_hammer", 3 },
                 { "dev_pickaxe", 1 }
-            }, 1.0f, 1.0f, 100.0f, 100.0f);
+            }, 1.0f, 1.0f, 100.0f, 95.0f);
         }
     }
 }
