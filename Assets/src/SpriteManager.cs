@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class SpriteManager
 {
+    public static readonly string UI_PLACEHOLDER_NAME = "placeholder";
+
     public enum SpriteType { Block, Item, UI };
     private static SpriteManager instance;
 

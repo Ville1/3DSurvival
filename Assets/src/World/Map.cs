@@ -9,10 +9,10 @@ public class Map {
     public int Size_X { get; private set; }
     public int Size_Y { get; private set; }
     public int Size_Z { get; private set; }
+    public GameObject Entity_Container { get; private set; }
 
     private GameObject game_object;
     private GameObject block_container;
-    private GameObject entity_container;
     private List<Block> blocks;
     private List<Entity> entities;
     private List<Entity> entities_to_be_added;
@@ -24,7 +24,7 @@ public class Map {
     {
         game_object = GameObject.Find("Map");
         block_container = GameObject.Find("Map/Blocks");
-        entity_container = GameObject.Find("Map/Entitys");
+        Entity_Container = GameObject.Find("Map/Entitys");
         blocks = new List<Block>();
         entities = new List<Entity>();
         entities_to_be_added = new List<Entity>();
@@ -77,9 +77,8 @@ public class Map {
         if(player_spawn == null) {
             CustomLogger.Instance.Error("Player spawn not found");
         }
-
-        Player prototype_player = new Player("Player 1", "Player", 1.0f, 1.0f);
-        Player player = new Player(player_spawn.Position, prototype_player, entity_container);
+        
+        Player player = new Player(player_spawn.Position, Player.Prototype, Entity_Container);
         entities.Add(player);
 
         active = true;
@@ -119,16 +118,26 @@ public class Map {
 
     public void Add_Entity(Entity entity)
     {
-        if(entities_to_be_added.FirstOrDefault(x => x.Id == entity.Id) != null) {
+        if(!entities_to_be_added.Exists(x => x.Id == entity.Id)) {
             entities_to_be_added.Add(entity);
         }
     }
 
     public void Remove_Entity(Entity entity)
     {
-        if (entities_to_be_removed.FirstOrDefault(x => x.Id == entity.Id) != null) {
+        if (!entities_to_be_removed.Exists(x => x.Id == entity.Id)) {
             entities_to_be_removed.Add(entity);
         }
+    }
+
+    public Entity Get_Entity(long entity_id)
+    {
+        return entities.FirstOrDefault(x => x.Id == entity_id);
+    }
+
+    public Block Get_Block(long block_id)
+    {
+        return blocks.FirstOrDefault(x => x.Id == block_id);
     }
 
     private void Delete()

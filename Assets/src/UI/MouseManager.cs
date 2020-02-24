@@ -30,6 +30,10 @@ public class MouseManager : MonoBehaviour
         if (!Show_Cursor) {
             CameraManager.Instance.Rotate_Camera(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
         }
+
+        if (Input.GetMouseButtonDown(0)) {
+            InspectorManager.Instance.Target = Object_Under_Cursor;
+        }
     }
 
     public Vector3 Mouse_Position_Relative_To_Camera
@@ -53,25 +57,22 @@ public class MouseManager : MonoBehaviour
         }
     }
 
-    /*public Tile Tile_Under_Cursor
+    public MapObject Object_Under_Cursor
     {
         get {
-            if (World.Instance.Map == null) {
-                return null;
-            }
             RaycastHit hit;
-            if (Physics.Raycast(CameraManager.Instance.Camera.ScreenPointToRay(Input.mousePosition), out hit) && hit.transform.gameObject.name.StartsWith(Tile.GAME_OBJECT_NAME_PREFIX)) {
+            if (Physics.Raycast(CameraManager.Instance.Camera.ScreenPointToRay(Input.mousePosition), out hit)) {
                 string name = hit.transform.gameObject.name;
-                int x, y;
-                if (!int.TryParse(name.Substring(name.IndexOf('(') + 1, name.IndexOf(',') - name.IndexOf('(') - 1), out x) ||
-                    !int.TryParse(name.Substring(name.IndexOf(',') + 1, name.IndexOf(')') - name.IndexOf(',') - 1), out y)) {
-                    CustomLogger.Instance.Error("String parsing error");
-                    return null;
-                } else {
-                    return World.Instance.Map.Get_Tile_At(x, y);
+                long? block_id = Block.Parse_Id_From_GameObject_Name(name);
+                if (block_id.HasValue) {
+                    return Map.Instance.Get_Block(block_id.Value);
+                }
+                long? entity_id = Entity.Parse_Id_From_GameObject_Name(name);
+                if (entity_id.HasValue) {
+                    return Map.Instance.Get_Entity(entity_id.Value);
                 }
             }
             return null;
         }
-    }*/
+    }
 }

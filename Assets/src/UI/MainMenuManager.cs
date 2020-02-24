@@ -53,6 +53,7 @@ public class MainMenuManager : MonoBehaviour
     {
         Visible = false;
         Map.Instance.Generate_New(20, 10, 20);
+        PlayerGUIManager.Instance.Active = true;
     }
 
     public void Exit_Button_On_Click()

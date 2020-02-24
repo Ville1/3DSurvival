@@ -52,6 +52,26 @@ public class KeyboardManager : MonoBehaviour
                 if (Input.GetButtonDown("Jump")) {
                     Player.Current.Current_Movement.Y = Direction.Shift.Positive;
                 }
+
+                if (Input.GetButtonDown("Dismantle block") || Input.GetButtonDown("Repair block") || Input.GetButtonDown("Harvest block")) {
+                    Block block = InspectorManager.Instance.Block;
+                    if (block == null) {
+                        MessageManager.Instance.Show_Message("Select a block");
+                    } else {
+                        string message;
+                        if (Input.GetButtonDown("Dismantle block")) {
+                            if(!Player.Current.Dismantle_Block(block, out message)) {
+                                MessageManager.Instance.Show_Message(message);
+                            }
+                        }
+                        if (Input.GetButtonDown("Repair block")) {
+
+                        }
+                        if (Input.GetButtonDown("Harvest block")) {
+
+                        }
+                    }
+                }
             }
         } else {
             MasterUIManager.Instance.Read_Keyboard_Input();

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Player : Mob
 {
@@ -6,18 +7,22 @@ public class Player : Mob
 
     private static long current_id;
 
-    public long Id { get; private set; }
+    public long Player_Id { get; private set; }
 
     public Player(Vector3 position, Player prototype, GameObject container) : base(position, prototype, container)
     {
-        Id = current_id;
+        Player_Id = current_id;
         current_id++;
-        GameObject.name = string.Format("{0}#{1}", PLAYER_GAME_OBJECT_NAME_PREFIX, Id);
+        GameObject.name = string.Format("{0}#{1}", PLAYER_GAME_OBJECT_NAME_PREFIX, Player_Id);
+        Inventory = prototype.Inventory.Clone();
     }
 
-    public Player(string name, string prefab_name, float movement_speed, float jump_strenght) : base(name, prefab_name, null, MaterialManager.MaterialType.Block, null, movement_speed, jump_strenght)
+    public Player(string name, string prefab_name, float movement_speed, float jump_strenght, int hp, List<Skill> skills, Dictionary<string, int> starting_items, float dismantling_speed, float building_speed,
+        float max_weight, float max_volyme) :
+        base(name, prefab_name, null, null, null, movement_speed, jump_strenght, hp, skills, dismantling_speed, building_speed, true)
     {
-        Id = -1;
+        Player_Id = -1;
+        Inventory = new Inventory(starting_items, max_weight, max_volyme);
     }
 
     public static Player Current
@@ -31,6 +36,17 @@ public class Player : Mob
     {
         get {
             return GameObject != null ? GameObject.GetComponentInChildren<Camera>() : null;
+        }
+    }
+
+    public static Player Prototype
+    {
+        get {
+            return new Player("Player 1", "Player", 1.0f, 1.0f, 50, new List<Skill>() { new Skill("Mining", Skill.SkillId.Mining, 3), new Skill("Masonry", Skill.SkillId.Masonry, 1) }, new Dictionary<string, int>() {
+                { "stone", 10 },
+                { "dev_hammer", 1 },
+                { "dev_pickaxe", 1 }
+            }, 1.0f, 1.0f, 100.0f, 100.0f);
         }
     }
 }

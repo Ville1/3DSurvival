@@ -29,6 +29,10 @@ public class CollisionBehaviour : MonoBehaviour {
                 standing_block_ids.Add(block_id.Value);
             }
         }
+        long? entity_id = Entity.Parse_Id_From_GameObject_Name(collision.gameObject.name);
+        if (entity_id.HasValue && !entity_ids.Contains(entity_id.Value)) {
+            entity_ids.Add(entity_id.Value);
+        }
     }
 
     private void OnCollisionExit(Collision collision)
@@ -43,12 +47,33 @@ public class CollisionBehaviour : MonoBehaviour {
                 standing_block_ids.Remove(block_id.Value);
             }
         }
+        long? entity_id = Entity.Parse_Id_From_GameObject_Name(collision.gameObject.name);
+        if (entity_id.HasValue && entity_ids.Contains(entity_id.Value)) {
+            entity_ids.Remove(entity_id.Value);
+        }
     }
 
     public bool Block_Contact
     {
         get {
-            return standing_block_ids.Count != 0;
+            return standing_block_ids != null && standing_block_ids.Count != 0;
+        }
+    }
+
+    public List<Entity> Entities
+    {
+        get {
+            if(entity_ids == null) {
+                return new List<Entity>();
+            }
+            List<Entity> entities = new List<Entity>();
+            foreach(long id in entity_ids) {
+                Entity entity = Map.Instance.Get_Entity(id);
+                if(entity != null) {
+                    entities.Add(entity);
+                }
+            }
+            return entities;
         }
     }
 }

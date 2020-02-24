@@ -6,10 +6,10 @@ public class MapObject {
     public GameObject Parent { get; protected set; }
     public string Prefab_Name { get; protected set; }
     public string Material { get; protected set; }
-    public MaterialManager.MaterialType Material_Type { get; protected set; }
+    public MaterialManager.MaterialType? Material_Type { get; protected set; }
     public string Model_Name { get; protected set; }
 
-    public MapObject(string name, Vector3 position, GameObject parent, string prefab_name, string material, MaterialManager.MaterialType material_type, string model_name, bool active)
+    public MapObject(string name, Vector3 position, GameObject parent, string prefab_name, string material, MaterialManager.MaterialType? material_type, string model_name, bool active)
     {
         Name = name;
         Parent = parent;
@@ -29,7 +29,7 @@ public class MapObject {
         Update_Material();
     }
 
-    public MapObject(string name, string prefab_name, string material, MaterialManager.MaterialType material_type, string model_name)
+    public MapObject(string name, string prefab_name, string material, MaterialManager.MaterialType? material_type, string model_name)
     {
         Name = name;
         Prefab_Name = prefab_name;
@@ -82,9 +82,9 @@ public class MapObject {
 
     protected void Update_Material()
     {
-        if (string.IsNullOrEmpty(Material) || !Active || MeshRenderer == null) {
+        if (string.IsNullOrEmpty(Material) || !Material_Type.HasValue || !Active || MeshRenderer == null) {
             return;
         }
-        MeshRenderer.material = MaterialManager.Instance.Get(Material, Material_Type);
+        MeshRenderer.material = MaterialManager.Instance.Get(Material, Material_Type.Value);
     }
 }
