@@ -12,6 +12,7 @@ public class InventoryGUIManager : MonoBehaviour {
     public Text Weight_Text;
 
     public GameObject Item_Panel;
+    public Text Item_Name_Text;
 
     private Item current_item;
     private ScrollableList list;
@@ -55,6 +56,7 @@ public class InventoryGUIManager : MonoBehaviour {
             Item_Panel.SetActive(false);
             current_item = null;
             MouseManager.Instance.Show_Cursor = value;
+            list.Reset_Scroll();
             if (Active) {
                 Update_GUI();
             }
@@ -152,7 +154,9 @@ public class InventoryGUIManager : MonoBehaviour {
 
     private void Select_Item(Item item, bool is_stack)
     {
-        CustomLogger.Instance.Debug(is_stack.ToString());
+        Item_Panel.SetActive(true);
+        List<Item> items = is_stack ? Player.Current.Inventory.Get_Items(item.Internal_Name) : new List<Item>();
+        Item_Name_Text.text = is_stack ? string.Format("{0}x {1}", items.Count, item.Name) : item.Name;
     }
 
     private Inventory Inventory

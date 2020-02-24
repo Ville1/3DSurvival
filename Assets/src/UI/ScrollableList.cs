@@ -16,6 +16,20 @@ public class ScrollableList : MonoBehaviour {
 
 	private void Start () {
         Row_Prototype.SetActive(false);
+    }
+	
+	private void Update () {
+		
+	}
+
+    /// <summary>
+    /// TODO: Is there a better solution for this?
+    /// </summary>
+    private void Initialize()
+    {
+        if(rows != null) {
+            return;
+        }
         rows = new Dictionary<string, GameObject>();
         scroll_delta = 0;
 
@@ -27,13 +41,10 @@ public class ScrollableList : MonoBehaviour {
         click_2.AddListener(new UnityAction(Scroll_Down));
         Lower_Button.onClick = click_2;
     }
-	
-	private void Update () {
-		
-	}
 
     public void Clear()
     {
+        Initialize();
         foreach(KeyValuePair<string, GameObject> pair in rows) {
             GameObject.Destroy(pair.Value);
         }
@@ -42,6 +53,7 @@ public class ScrollableList : MonoBehaviour {
 
     public void Add_Row(string id, List<TextData> texts, List<ImageData> images, List<ButtonData> buttons, int index = -1)
     {
+        Initialize();
         if (rows.ContainsKey(id)) {
             CustomLogger.Instance.Error(string.Format("Duplicate id: {0}", id));
             return;
@@ -98,6 +110,7 @@ public class ScrollableList : MonoBehaviour {
 
     public void Update_Row(string id, List<TextData> texts, List<ImageData> images, List<ButtonData> buttons)
     {
+        Initialize();
         if (!rows.ContainsKey(id)) {
             CustomLogger.Instance.Error(string.Format("Row does not exist: {0}", id));
             return;
@@ -107,6 +120,7 @@ public class ScrollableList : MonoBehaviour {
 
     public int Index_Of(string id)
     {
+        Initialize();
         int index = 0;
         foreach(KeyValuePair<string, GameObject> pair in rows) {
             if(pair.Key == id) {
@@ -120,6 +134,7 @@ public class ScrollableList : MonoBehaviour {
 
     public void Delete_Row(string id)
     {
+        Initialize();
         if (!rows.ContainsKey(id)) {
             CustomLogger.Instance.Error(string.Format("Row does not exist: {0}", id));
             return;
@@ -230,13 +245,22 @@ public class ScrollableList : MonoBehaviour {
     
     public void Scroll_Up()
     {
+        Initialize();
         scroll_delta++;
         Update_Row_Positions();
     }
 
     public void Scroll_Down()
     {
+        Initialize();
         scroll_delta--;
+        Update_Row_Positions();
+    }
+
+    public void Reset_Scroll()
+    {
+        Initialize();
+        scroll_delta = 0;
         Update_Row_Positions();
     }
 
