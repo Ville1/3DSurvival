@@ -3,8 +3,9 @@ using UnityEngine;
 
 public class CameraManager
 {
+    public static readonly float SENSITIVITY = 1.5f;
     public static readonly float MIN_ROTATION = -80.0f;
-    public static readonly float MAX_ROTATION = 60.0f;
+    public static readonly float MAX_ROTATION = 80.0f;
 
     private static CameraManager instance;
     private Camera camera;
@@ -41,6 +42,8 @@ public class CameraManager
         if(Player.Current == null || (x == 0.0f && y == 0.0f)) {
             return;
         }
+        x *= SENSITIVITY;
+        y *= SENSITIVITY;
         if (x != 0.0f) {
             Player.Current.GameObject.transform.Rotate(new Vector3(0.0f, x, 0.0f));
         }

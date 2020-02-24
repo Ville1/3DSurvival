@@ -8,7 +8,7 @@ public class Mob : Entity
     private enum ActionType { Moving, Dismantle, Repair, Build, Craft }
 
     private static readonly float VERTICAL_MOVEMENT_FORCE_MULTIPLIER = 200.0f;
-    private static readonly float HORIZONTAL_SPEED_MULTIPLIER = 3.0f;
+    private static readonly float HORIZONTAL_SPEED_MULTIPLIER = 2.5f;
     private static readonly string IDLE_TEXT = "Idle";
     private static readonly float OPERATION_RANGE = 4.0f;
 

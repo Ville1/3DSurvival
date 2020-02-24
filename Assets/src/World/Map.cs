@@ -115,6 +115,9 @@ public class Map {
 
         foreach(Entity entity in entities_to_be_removed) {
             entities.Remove(entity);
+            if(InspectorManager.Instance.Target == entity) {
+                InspectorManager.Instance.Target = null;
+            }
         }
         entities_to_be_removed.Clear();
 
@@ -125,6 +128,9 @@ public class Map {
 
         foreach (Block block in blocks_to_be_removed) {
             blocks.Remove(block);
+            if (InspectorManager.Instance.Target == block) {
+                InspectorManager.Instance.Target = null;
+            }
         }
         blocks_to_be_removed.Clear();
     }

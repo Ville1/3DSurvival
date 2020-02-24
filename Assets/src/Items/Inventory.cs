@@ -77,6 +77,13 @@ public class Inventory : IEnumerable<Item> {
         }
     }
 
+    public int Count
+    {
+        get {
+            return items.Count;
+        }
+    }
+
     public bool Has_Tool(Tool.ToolType type, int level)
     {
         return items.Exists(x => x is Tool && (x as Tool).Type == type && (x as Tool).Level >= level);

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 
 public class ItemPile : Entity {
 
@@ -17,6 +18,16 @@ public class ItemPile : Entity {
     {
         get {
             return new ItemPile("Item pile", "Item_Pile", null, null, null);
+        }
+    }
+
+    public Item Top_Most_Item
+    {
+        get {
+            if (Inventory.Is_Empty) {
+                return null;
+            }
+            return Inventory.Get_Items(Inventory.Count_Dictionary_Internal_Names.OrderByDescending(x => x.Value).Select(x => x.Key).ToArray()[0])[0];
         }
     }
 }

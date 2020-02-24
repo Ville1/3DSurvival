@@ -4,7 +4,9 @@ using UnityEngine.EventSystems;
 public class MouseManager : MonoBehaviour
 {
     public static MouseManager Instance { get; private set; }
-    
+
+    public GameObject Crosshair;
+
     private bool cursor_visibility;
 
     public Vector3 Hit_Normal { get; private set; }
@@ -23,6 +25,7 @@ public class MouseManager : MonoBehaviour
         cursor_visibility = true;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+        Crosshair.SetActive(false);
     }
 
     /// <summary>
@@ -57,6 +60,7 @@ public class MouseManager : MonoBehaviour
             cursor_visibility = value;
             Cursor.visible = cursor_visibility;
             Cursor.lockState = cursor_visibility ? CursorLockMode.None : CursorLockMode.Locked;
+            Crosshair.SetActive(!value);
         }
     }
 

@@ -18,6 +18,7 @@ public class Block : MapObject {
     public int MAX_HP { get; private set; }
     public float HP { get; private set; }
     public float HP_Dismantled { get; private set; }
+    public float HP_Built { get; private set; }
     public string UI_Sprite { get; private set; }
     public SpriteManager.SpriteType UI_Sprite_Type { get; private set; }
     public float Dismantle_Speed { get; private set; }
@@ -73,6 +74,7 @@ public class Block : MapObject {
         Indestructible = hp <= 0.0f;
         HP = -1.0f;
         HP_Dismantled = -1.0f;
+        HP_Built = -1.0f;
         UI_Sprite = ui_sprite;
         UI_Sprite_Type = ui_sprite_type;
         Dismantle_Speed = dismantle_speed;
@@ -120,6 +122,7 @@ public class Block : MapObject {
         HP = hp.HasValue ? hp.Value : prototype.MAX_HP;
         MAX_HP = prototype.MAX_HP;
         HP_Dismantled = 0.0f;
+        HP_Built = 0.0f;
         Indestructible = prototype.Indestructible;
         UI_Sprite = prototype.UI_Sprite;
         UI_Sprite_Type = prototype.UI_Sprite_Type;
@@ -170,13 +173,12 @@ public class Block : MapObject {
         bool broke = HP == 0.0f;
         if (broke) {
             //TODO: 0.95f
-            if (HP_Dismantled >= 0.95f * MAX_HP) {
-                Dictionary<string, int> item_drops = Completed ? Dismantle_Drops : Materials_Required_To_Build;
-                if(item_drops.Count != 0) {
-                    ItemPile pile = new ItemPile(Position, ItemPile.Prototype, Map.Instance.Entity_Container, new Inventory(item_drops));
-                }
-                Change_To(BlockPrototypes.Instance.Air);
+            if (Completed && HP_Dismantled >= 0.95f * MAX_HP && Dismantle_Drops.Count != 0) {
+                ItemPile pile = new ItemPile(Position, ItemPile.Prototype, Map.Instance.Entity_Container, new Inventory(Dismantle_Drops));
+            } else if(!Completed && HP_Dismantled >= 0.95f * HP_Built && Materials_Required_To_Build.Count != 0) {
+                ItemPile pile = new ItemPile(Position, ItemPile.Prototype, Map.Instance.Entity_Container, new Inventory(Materials_Required_To_Build));
             }
+            Change_To(BlockPrototypes.Instance.Air);
         }
         Update_Material();
         return broke;
@@ -186,8 +188,11 @@ public class Block : MapObject {
     {
         HP = Mathf.Min(MAX_HP, HP + amount);
         HP_Dismantled = Mathf.Max(0.0f, HP_Dismantled - amount);
-        if(!Completed && HP == MAX_HP) {
-            Completed = true;
+        if(!Completed) {
+            HP_Built = Mathf.Min(HP, HP_Built + amount);
+            if (HP == MAX_HP) {
+                Completed = true;
+            }
         }
         Update_Material();
         return HP == MAX_HP;

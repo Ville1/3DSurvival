@@ -49,4 +49,14 @@ public class Helper
         }
         return clone;
     }
+
+    public static string Plural(int i)
+    {
+        return i == 1 ? string.Empty : "s";
+    }
+
+    public static string Plural(string s, int i)
+    {
+        return string.Format("{0}{1}", s, i == 1 ? string.Empty : "s");
+    }
 }
