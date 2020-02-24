@@ -18,8 +18,8 @@ public class Player : Mob
     }
 
     public Player(string name, string prefab_name, float movement_speed, float jump_strenght, int hp, List<Skill> skills, Dictionary<string, int> starting_items, float dismantling_speed, float building_speed,
-        float max_weight, float max_volyme) :
-        base(name, prefab_name, null, null, null, movement_speed, jump_strenght, hp, skills, dismantling_speed, building_speed, true)
+        float crafting_speed, float max_weight, float max_volyme) :
+        base(name, prefab_name, null, null, null, movement_speed, jump_strenght, hp, skills, dismantling_speed, building_speed, crafting_speed, true)
     {
         Player_Id = -1;
         Inventory = new Inventory(starting_items, max_weight, max_volyme);
@@ -46,7 +46,7 @@ public class Player : Mob
                 { "stone", 10 },
                 { "dev_hammer", 1 },
                 { "dev_pickaxe", 1 }
-            }, 1.0f, 1.0f, 100.0f, 95.0f);
+            }, 1.0f, 1.0f, 1.0f, 100.0f, 95.0f);
         }
     }
 }

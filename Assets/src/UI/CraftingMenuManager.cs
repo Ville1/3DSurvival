@@ -14,6 +14,8 @@ public class CraftingMenuManager : MonoBehaviour {
 
     public GameObject Side_Panel;
     public Text Recipe_Name_Text;
+    public Slider Progress_Slider;
+    public Text Progress_Text;
     public Button Craft_Button;
 
     private Dictionary<TabType, Button> tab_buttons;
@@ -37,6 +39,10 @@ public class CraftingMenuManager : MonoBehaviour {
         tab_buttons = new Dictionary<TabType, Button>();
         tab_panels = new Dictionary<TabType, GameObject>();
         current_recipe = null;
+
+        Button.ButtonClickedEvent click = new Button.ButtonClickedEvent();
+        click.AddListener(new UnityAction(Craft));
+        Craft_Button.onClick = click;
     }
 
     /// <summary>
@@ -44,7 +50,15 @@ public class CraftingMenuManager : MonoBehaviour {
     /// </summary>
     private void Update()
     {
-
+        if (Side_Panel.activeSelf) {
+            if (Player.Current.Current_Crafting_Progress.HasValue) {
+                Progress_Slider.value = Player.Current.Current_Crafting_Progress.Value;
+                Progress_Text.text = string.Format("{0}%", Helper.Float_To_String(Player.Current.Current_Crafting_Progress.Value * 100.0f, 0));
+            } else {
+                Progress_Slider.value = 0.0f;
+                Progress_Text.text = string.Empty;
+            }
+        }
     }
 
     public bool Active
@@ -58,8 +72,9 @@ public class CraftingMenuManager : MonoBehaviour {
             }
             Main_Panel.SetActive(value);
             Side_Panel.SetActive(false);
+            Progress_Slider.value = 0.0f;
+            Progress_Text.text = string.Empty;
             current_recipe = null;
-            MouseManager.Instance.Show_Cursor = value;
             if (Active) {
                 MainMenuManager.Instance.Visible = false;
                 BuildMenuManager.Instance.Active = false;
@@ -152,7 +167,36 @@ public class CraftingMenuManager : MonoBehaviour {
 
     public void Select_Recipe(CraftingRecipe recipe)
     {
+        current_recipe = recipe;
         Side_Panel.SetActive(true);
         Recipe_Name_Text.text = recipe.Name;
+        string message = null;
+        if (Player.Current.Can_Craft(recipe, out message)) {
+            Craft_Button.interactable = true;
+            TooltipManager.Instance.Unregister_Tooltip(Craft_Button.gameObject);
+        } else {
+            Craft_Button.interactable = false;
+            TooltipManager.Instance.Register_Tooltip(Craft_Button.gameObject, message, Craft_Button.gameObject);
+        }
+    }
+
+    public void Craft()
+    {
+        if(current_recipe == null) {
+            return;
+        }
+        string message;
+        if(!Player.Current.Craft(current_recipe, out message)) {
+            MessageManager.Instance.Show_Message(message);
+        } else {
+            Update_Side_Panel();
+        }
+    }
+
+    public void Update_Side_Panel()
+    {
+        if(current_recipe != null) {
+            Select_Recipe(current_recipe);
+        }
     }
 }

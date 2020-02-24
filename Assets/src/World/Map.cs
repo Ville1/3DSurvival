@@ -86,7 +86,6 @@ public class Map {
 
         active = true;
         CameraManager.Instance.Reset();
-        MouseManager.Instance.Show_Cursor = false;
     }
 
     public void Update(float delta_time)
@@ -184,6 +183,13 @@ public class Map {
     public Block Get_Block_At(Coordinates coordinates)
     {
         return blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
+    }
+
+    public bool Active
+    {
+        get {
+            return active;
+        }
     }
 
     private void Delete()

@@ -30,6 +30,7 @@ public class Mob : Entity
     public List<Skill> Skills { get; private set; }
     public float Dismantling_Speed { get; private set; }
     public float Building_Speed { get; private set; }
+    public float Crafting_Speed { get; private set; }
     public bool Picks_Up_Items { get; private set; }
 
     private List<ActionData> actions;
@@ -48,11 +49,12 @@ public class Mob : Entity
         actions = new List<ActionData>();
         Dismantling_Speed = prototype.Dismantling_Speed;
         Building_Speed = prototype.Building_Speed;
+        Crafting_Speed = prototype.Crafting_Speed;
         Picks_Up_Items = prototype.Picks_Up_Items;
     }
 
     public Mob(string name, string prefab_name, string material, MaterialManager.MaterialType? material_type, string model_name, float movement_speed, float jump_strenght, int hp, List<Skill> skills,
-        float dismantling_speed, float building_speed, bool picks_up_items) :
+        float dismantling_speed, float building_speed, float crafting_speed, bool picks_up_items) :
         base(name, prefab_name, material, material_type, model_name)
     {
         MAX_HP = hp;
@@ -64,6 +66,7 @@ public class Mob : Entity
         Skills = Helper.Clone_List(skills);
         Dismantling_Speed = dismantling_speed;
         Building_Speed = building_speed;
+        Crafting_Speed = crafting_speed;
         Picks_Up_Items = picks_up_items;
     }
 
@@ -120,6 +123,8 @@ public class Mob : Entity
             }
         }
 
+        //TODO: Only 1 action per type gets progressed at time. Should for example multiple crafting action be allowed to happen at once?
+
         //Dismantling
         ActionData dismantling = actions.FirstOrDefault(x => x.Type == ActionType.Dismantle);
         if(dismantling != null) {
@@ -163,10 +168,67 @@ public class Mob : Entity
             //TODO: Tool durability
         }
 
+        //Crafting
+        ActionData crafting = actions.FirstOrDefault(x => x.Type == ActionType.Craft);
+        if(crafting != null) {
+            List<Tool> tools_used = new List<Tool>();
+            float tool_efficency = Get_Tool_Efficency(crafting.Recipe.Required_Tools, out tools_used);
+            float progress = delta_time * Crafting_Speed * tool_efficency;
+            crafting.Progress = Mathf.Clamp(crafting.Progress + progress, 0.0f, crafting.Recipe.Time);
+            if(crafting.Progress != crafting.Recipe.Time) {
+                crafting.Text = string.Format(PROGRESS_TEXT, crafting.Recipe.Name, Helper.Float_To_String((crafting.Progress / crafting.Recipe.Time) * 100.0f, 0));
+            } else {
+                bool failed = false;
+                List<long> added_outputs = new List<long>();
+                foreach(KeyValuePair<string, int> output in crafting.Recipe.Outputs) {
+                    for(int i = 0; i < output.Value; i++) {
+                        if (Inventory.Can_Fit(ItemPrototypes.Instance.Get_Item(output.Key))) {
+                            Item added = Inventory.Add(ItemPrototypes.Instance.Get_Item(output.Key));
+                            added_outputs.Add(added.Id);
+                        } else {
+                            failed = true;
+                            break;
+                        }
+                    }
+                    if (failed) {
+                        break;
+                    }
+                }
+                if (failed) {
+                    //TODO: Refunding can push inventory over limits. Spill on ground?
+                    //TODO: Failing recipes can be used to refresh durability, this should refund exactly the same items it took
+                    foreach(KeyValuePair<string, int> input in crafting.Recipe.Inputs) {
+                        for(int i = 0; i < input.Value; i++) {
+                            Inventory.Add(ItemPrototypes.Instance.Get_Item(input.Key));
+                        }
+                    }
+                    foreach (long id in added_outputs) {
+                        Item removed = Inventory.Remove(id);
+                        if(removed == null) {
+                            //This should not happen
+                            CustomLogger.Instance.Error(string.Format("Failed to remove item #{0} from inventory", id));
+                        }
+                    }
+                    FloatingMessageManager.Instance.Show(string.Format("{0} failed, out of inventory space", crafting.Recipe.Name));
+                } else {
+                    FloatingMessageManager.Instance.Show(string.Format("{0} finished", crafting.Recipe.Name));
+                }
+                if (Is_Current_Player && InventoryGUIManager.Instance.Active) {
+                    InventoryGUIManager.Instance.Update_GUI();
+                }
+                crafting.Finished = true;
+            }
+        }
+
         //Clear actions
         List<ActionData> finished_actions = actions.Where(x => x.Finished).ToList();
         foreach(ActionData finished_action in finished_actions) {
             actions.Remove(finished_action);
+        }
+
+        if(crafting != null && crafting.Finished && Is_Current_Player && CraftingMenuManager.Instance.Active) {
+            //TODO: Move to CraftingMenuManager.Update()?
+            CraftingMenuManager.Instance.Update_Side_Panel();
         }
 
         //Pick up items
@@ -192,6 +254,17 @@ public class Mob : Entity
             if (!added_items.Is_Empty) {
                 FloatingMessageManager.Instance.Show(added_items.Parse_Text(true));
             }
+        }
+    }
+
+    public float? Current_Crafting_Progress
+    {
+        get {
+            ActionData crafting = actions.FirstOrDefault(x => x.Type == ActionType.Craft);
+            if(crafting == null) {
+                return null;
+            }
+            return crafting.Progress / crafting.Recipe.Time;
         }
     }
 
@@ -320,6 +393,43 @@ public class Mob : Entity
         return true;
     }
 
+    public bool Can_Craft(CraftingRecipe recipe, out string message)
+    {
+        //TODO: Check inventory space with input <-> output
+        message = null;
+        if (!Can_Work(out message, true)) {
+            return false;
+        }
+        if (!Has_Skills(recipe.Required_Skills, out message)) {
+            return false;
+        }
+        if (!Has_Tools(recipe.Required_Tools, out message)) {
+            return false;
+        }
+        if (!Has_Items(recipe.Inputs, out message)) {
+            return false;
+        }
+        return true;
+    }
+
+    public bool Craft(CraftingRecipe recipe, out string message)
+    {
+        message = null;
+        if(!Can_Craft(recipe, out message)) {
+            return false;
+        }
+        foreach(KeyValuePair<string, int> input in recipe.Inputs) {
+            for(int i = 0; i < input.Value; i++) {
+                Inventory.Remove(input.Key);
+            }
+        }
+        ActionData data = new ActionData(recipe.Name, string.Format(PROGRESS_TEXT, recipe.Name, 0), ActionType.Craft, false, null);
+        data.Recipe = recipe;
+        data.Progress = 0.0f;
+        actions.Add(data);
+        return true;
+    }
+
     public bool Can_Operate(Block block)
     {
         return Vector3.Distance(block.Position, Position) <= OPERATION_RANGE;
@@ -354,12 +464,19 @@ public class Mob : Entity
         return true;
     }
 
-    public bool Can_Work(out string message)
+    public bool Can_Work(out string message, bool ignore_movement = false)
     {
         message = null;
-        if(actions.Count != 0) {
+        if(!ignore_movement && actions.Count != 0) {
             message = string.Format(MESSAGE_BUSY, actions[0].Name);
             return false;
+        }
+        if (ignore_movement) {
+            ActionData non_movement_action = actions.FirstOrDefault(x => x.Type != ActionType.Moving);
+            if(non_movement_action != null) {
+                message = string.Format(MESSAGE_BUSY, non_movement_action.Name);
+            }
+            return non_movement_action == null;
         }
         return true;
     }
@@ -395,6 +512,13 @@ public class Mob : Entity
         return total / count;
     }
 
+    private bool Is_Current_Player
+    {
+        get {
+            return this is Player && Player.Current != null && (this as Player).Id == Player.Current.Id;
+        }
+    }
+
     private class ActionData
     {
         public string Name { get; set; }
@@ -403,6 +527,8 @@ public class Mob : Entity
         public Block Target { get; set; }
         public bool Finished { get; set; }
         public bool Moving_Cancels { get; set; }
+        public CraftingRecipe Recipe { get; set; }
+        public float Progress { get; set; }
 
         public ActionData(string name, string text, ActionType type, bool moving_cancels)
         {

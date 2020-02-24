@@ -10,7 +10,7 @@ public class CraftingRecipePrototypes {
     {
         prototypes = new List<CraftingRecipe>();
 
-        prototypes.Add(new CraftingRecipe("Test", "test", CraftingMenuManager.TabType.Misc, new Dictionary<string, int>() { { "stone", 2 } }, new Dictionary<string, int>() { { "wood", 1 } }, null, null, "placeholder", SpriteManager.SpriteType.UI));
+        prototypes.Add(new CraftingRecipe("Test", "test", 2.0f, CraftingMenuManager.TabType.Misc, new Dictionary<string, int>() { { "stone", 2 } }, new Dictionary<string, int>() { { "wood", 1 } }, null, null, "placeholder", SpriteManager.SpriteType.UI));
     }
 
     public static CraftingRecipePrototypes Instance

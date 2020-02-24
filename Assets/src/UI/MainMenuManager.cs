@@ -40,7 +40,6 @@ public class MainMenuManager : MonoBehaviour
                 MasterUIManager.Instance.Close_All();
             }
             Panel.SetActive(value);
-            MouseManager.Instance.Show_Cursor = Panel.activeSelf;
         }
     }
 

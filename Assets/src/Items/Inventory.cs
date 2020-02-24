@@ -110,9 +110,10 @@ public class Inventory : IEnumerable<Item> {
         return (!Limited_Weight || item.Weight <= 0.0f || (Current_Weight + item.Weight <= Max_Weight)) || (!Limited_Volyme || item.Volyme <= 0.0f || (Current_Volyme + item.Volyme <= Max_Volyme));
     }
 
-    public void Add(Item item)
+    public Item Add(Item item)
     {
         items.Add(item);
+        return item;
     }
 
     public void Remove(Item item)
@@ -124,6 +125,15 @@ public class Inventory : IEnumerable<Item> {
     {
         Item item = items.Where(x => x.Internal_Name == internal_name).OrderBy(x => x.Unbreaking ? 999.9f : x.Durability).FirstOrDefault();
         if(item != null) {
+            items.Remove(item);
+        }
+        return item;
+    }
+
+    public Item Remove(long id)
+    {
+        Item item = items.FirstOrDefault(x => x.Id == id);
+        if (item != null) {
             items.Remove(item);
         }
         return item;

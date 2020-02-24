@@ -55,7 +55,6 @@ public class InventoryGUIManager : MonoBehaviour {
             Info_Panel.SetActive(value);
             Item_Panel.SetActive(false);
             current_item = null;
-            MouseManager.Instance.Show_Cursor = value;
             list.Reset_Scroll();
             if (Active) {
                 MainMenuManager.Instance.Visible = false;
@@ -72,7 +71,7 @@ public class InventoryGUIManager : MonoBehaviour {
         Active = !Active;
     }
 
-    private void Update_GUI()
+    public void Update_GUI()
     {
         list.Clear();
         Volyme_Text.text = string.Format("Volyme: {0}", !Inventory.Limited_Volyme ? "Unlimited" : string.Format("{0} / {1}", Helper.Float_To_String(Inventory.Current_Volyme, 1), Inventory.Max_Volyme));

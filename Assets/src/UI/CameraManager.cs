@@ -11,8 +11,6 @@ public class CameraManager
     private Camera camera;
     private GameObject canvas;
 
-    private float temp_1 = float.MaxValue;
-
     private CameraManager()
     {
         camera = Camera.main;

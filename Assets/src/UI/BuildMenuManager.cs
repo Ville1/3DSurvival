@@ -88,7 +88,6 @@ public class BuildMenuManager : MonoBehaviour
             }
             Main_Panel.SetActive(value);
             Side_Panel.SetActive(false);
-            MouseManager.Instance.Show_Cursor = value;
             if (Active) {
                 MainMenuManager.Instance.Visible = false;
                 InventoryGUIManager.Instance.Active = false;
