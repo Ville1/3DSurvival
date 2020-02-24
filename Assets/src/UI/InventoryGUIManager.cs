@@ -61,6 +61,7 @@ public class InventoryGUIManager : MonoBehaviour {
                 MainMenuManager.Instance.Visible = false;
                 BuildMenuManager.Instance.Active = false;
                 BuildMenuManager.Instance.Preview_Active = false;
+                CraftingMenuManager.Instance.Active = false;
                 Update_GUI();
             }
         }

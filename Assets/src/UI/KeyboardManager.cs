@@ -28,6 +28,12 @@ public class KeyboardManager : MonoBehaviour
         if (Input.GetButtonDown("Escape")) {
             if (BuildMenuManager.Instance.Preview_Active) {
                 BuildMenuManager.Instance.Preview_Active = false;
+            } else if (InventoryGUIManager.Instance.Active) {
+                InventoryGUIManager.Instance.Active = false;
+            } else if (BuildMenuManager.Instance.Active) {
+                BuildMenuManager.Instance.Active = false;
+            } else if (CraftingMenuManager.Instance.Active) {
+                CraftingMenuManager.Instance.Active = false;
             } else {
                 MainMenuManager.Instance.Visible = true;
             }
@@ -83,6 +89,9 @@ public class KeyboardManager : MonoBehaviour
                 }
                 if(Input.GetButtonDown("Build menu")) {
                     BuildMenuManager.Instance.Toggle();
+                }
+                if(Input.GetButtonDown("Crafting menu")) {
+                    CraftingMenuManager.Instance.Toggle();
                 }
             }
         } else {

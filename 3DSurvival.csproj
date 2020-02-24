@@ -83,6 +83,8 @@
     <Compile Include="Assets\src\CustomLogger.cs" />
     <Compile Include="Assets\src\Direction.cs" />
     <Compile Include="Assets\src\Helper.cs" />
+    <Compile Include="Assets\src\Items\CraftingRecipe.cs" />
+    <Compile Include="Assets\src\Items\CraftingRecipePrototypes.cs" />
     <Compile Include="Assets\src\Items\Inventory.cs" />
     <Compile Include="Assets\src\Items\Item.cs" />
     <Compile Include="Assets\src\Items\ItemPrototypes.cs" />
@@ -101,6 +103,7 @@
     <Compile Include="Assets\src\UI\BuildMenuManager.cs" />
     <Compile Include="Assets\src\UI\CameraManager.cs" />
     <Compile Include="Assets\src\UI\ConsoleManager.cs" />
+    <Compile Include="Assets\src\UI\CraftingMenuManager.cs" />
     <Compile Include="Assets\src\UI\FloatingMessageManager.cs" />
     <Compile Include="Assets\src\UI\InspectorManager.cs" />
     <Compile Include="Assets\src\UI\InventoryGUIManager.cs" />
