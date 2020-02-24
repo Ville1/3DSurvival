@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Mob : Entity
 {
-    private enum ActionType { Moving, Dismantle }
+    private enum ActionType { Moving, Dismantle, Repair, Build, Craft }
 
     private static readonly float VERTICAL_MOVEMENT_FORCE_MULTIPLIER = 200.0f;
     private static readonly float HORIZONTAL_SPEED_MULTIPLIER = 3.0f;
@@ -13,6 +13,7 @@ public class Mob : Entity
     private static readonly float OPERATION_RANGE = 4.0f;
 
     private static readonly string MESSAGE_INDESTRUCTIBLE = "Indestructible";
+    private static readonly string MESSAGE_OBSTRUCTED = "Obstructed";
     private static readonly string MESSAGE_CANT_REACH = "Out of reach";
     private static readonly string MESSAGE_INSUFFICENT_SKILL = "Insufficent {0} skill, {1} required";
     private static readonly string MESSAGE_INSUFFICENT_ITEMS = "Not enough {0}, {1} required";
@@ -126,11 +127,40 @@ public class Mob : Entity
             float tool_efficency = Get_Tool_Efficency(dismantling.Target.Tools_Required_To_Dismantle, out tools_used);
             string verb = dismantling.Target.Dismantle_Verb.Present;
             if (!dismantling.Target.Deal_Damage(delta_time * Dismantling_Speed * tool_efficency, true)) {
-                dismantling.Text = string.Format(PROGRESS_TEXT, dismantling.Target.Dismantle_Verb.Present, Helper.Float_To_String(100.0f * (1.0f - dismantling.Target.Relative_HP), 0));
+                dismantling.Text = string.Format(PROGRESS_TEXT, string.Format("{0} {1}", dismantling.Target.Dismantle_Verb.Present, dismantling.Target.Name), Helper.Float_To_String(100.0f * (1.0f - dismantling.Target.Relative_HP), 0));
             } else {
                 FloatingMessageManager.Instance.Show(string.Format("{0} finished", verb));
                 dismantling.Finished = true;
             }
+            //TODO: Tool durability
+        }
+
+        //Repairing
+        ActionData repairing = actions.FirstOrDefault(x => x.Type == ActionType.Repair);
+        if (repairing != null) {
+            List<Tool> tools_used = new List<Tool>();
+            float tool_efficency = Get_Tool_Efficency(repairing.Target.Tools_Required_To_Build, out tools_used);
+            if (!repairing.Target.RepairOrBuild(delta_time * Building_Speed * tool_efficency)) {
+                repairing.Text = string.Format(PROGRESS_TEXT, string.Format("Repairing {0}", repairing.Target.Name), Helper.Float_To_String(100.0f * repairing.Target.Relative_HP, 0));
+            } else {
+                FloatingMessageManager.Instance.Show("Repairing finished");
+                repairing.Finished = true;
+            }
+            //TODO: Tool durability
+        }
+
+        //Building
+        ActionData building = actions.FirstOrDefault(x => x.Type == ActionType.Build);
+        if (building != null) {
+            List<Tool> tools_used = new List<Tool>();
+            float tool_efficency = Get_Tool_Efficency(building.Target.Tools_Required_To_Build, out tools_used);
+            if (!building.Target.RepairOrBuild(delta_time * Building_Speed * tool_efficency)) {
+                building.Text = string.Format(PROGRESS_TEXT, string.Format("Building {0}", building.Target.Name), Helper.Float_To_String(100.0f * building.Target.Relative_HP, 0));
+            } else {
+                FloatingMessageManager.Instance.Show("Building finished");
+                building.Finished = true;
+            }
+            //TODO: Tool durability
         }
 
         //Clear actions
@@ -197,8 +227,96 @@ public class Mob : Entity
         if(!Has_Tools(block.Tools_Required_To_Dismantle, out message)) {
             return false;
         }
-        actions.Add(new ActionData(block.Dismantle_Verb.Present, string.Format(PROGRESS_TEXT, block.Dismantle_Verb.Present, Helper.Float_To_String(100.0f * (1.0f - block.Relative_HP), 0)),
-            ActionType.Dismantle, true, block));
+        actions.Add(new ActionData(block.Dismantle_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Dismantle_Verb.Present, block.Name),
+            Helper.Float_To_String(100.0f * (1.0f - block.Relative_HP), 0)), ActionType.Dismantle, true, block));
+        return true;
+    }
+
+    public bool Repair_Block(Block block, out string message)
+    {
+        message = null;
+        if (block.Indestructible) {
+            message = MESSAGE_INDESTRUCTIBLE;
+            return false;
+        }
+        if (!Can_Work(out message)) {
+            return false;
+        }
+        if (!Can_Operate(block)) {
+            message = MESSAGE_CANT_REACH;
+            return false;
+        }
+        if (!Has_Skills(block.Skills_Required_To_Build, out message)) {
+            return false;
+        }
+        if (!Has_Tools(block.Tools_Required_To_Build, out message)) {
+            return false;
+        }
+        actions.Add(new ActionData("Repair", string.Format(PROGRESS_TEXT, string.Format("Repairing {0}", block.Name), Helper.Float_To_String(100.0f * block.Relative_HP, 0)),
+            ActionType.Repair, true, block));
+        return true;
+    }
+
+    public bool Build_Block(Block prototype, Block target, out string message)
+    {
+        message = null;
+        //TODO: Check for map objects in location
+        //TODO: Duplicated code
+        if (!target.Can_Be_Built_Over) {
+            message = MESSAGE_OBSTRUCTED;
+            return false;
+        }
+        if (!Can_Operate(target)) {
+            message = MESSAGE_CANT_REACH;
+            return false;
+        }
+        if (!Can_Build(prototype, out message)) {
+            return false;
+        }
+        foreach(KeyValuePair<string, int> resource in prototype.Materials_Required_To_Build) {
+            for(int i = 0; i < resource.Value; i++) {
+                Inventory.Remove(resource.Key);
+            }
+        }
+        target.Change_To(prototype, true, 0.01f);
+        actions.Add(new ActionData("Build", string.Format(PROGRESS_TEXT, string.Format("Building {0}", prototype.Name), Helper.Float_To_String(100.0f * target.Relative_HP, 0)),
+            ActionType.Build, true, target));
+        return true;
+    }
+
+    public bool Can_Build(Block prototype, Block location, out string message)
+    {
+        message = null;
+        //TODO: Check for map objects in location
+        if (!location.Can_Be_Built_Over) {
+            message = MESSAGE_OBSTRUCTED;
+            return false;
+        }
+        if (!Can_Operate(location)) {
+            message = MESSAGE_CANT_REACH;
+            return false;
+        }
+        if (!Can_Build(prototype, out message)) {
+            return false;
+        }
+        return true;
+    }
+
+    public bool Can_Build(Block prototype, out string message)
+    {
+        message = null;
+        if (!Can_Work(out message)) {
+            return false;
+        }
+        if (!Has_Skills(prototype.Skills_Required_To_Build, out message)) {
+            return false;
+        }
+        if (!Has_Tools(prototype.Tools_Required_To_Build, out message)) {
+            return false;
+        }
+        if (!Has_Items(prototype.Materials_Required_To_Build, out message)) {
+            return false;
+        }
         return true;
     }
 
@@ -222,6 +340,18 @@ public class Mob : Entity
     public bool Has_Skill(Skill.SkillId id, int level)
     {
         return Skills.Exists(x => x.Id == id && x.Level >= level);
+    }
+
+    public bool Has_Items(Dictionary<string, int> items, out string message)
+    {
+        message = null;
+        foreach(KeyValuePair<string, int> data in items) {
+            if(!Inventory.Has_Items(data.Key, data.Value)) {
+                message = string.Format(MESSAGE_INSUFFICENT_ITEMS, ItemPrototypes.Instance.Get_Item(data.Key).Name, data.Value);
+                return false;
+            }
+        }
+        return true;
     }
 
     public bool Can_Work(out string message)

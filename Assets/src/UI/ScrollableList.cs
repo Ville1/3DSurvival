@@ -181,41 +181,41 @@ public class ScrollableList : MonoBehaviour {
         buttons = buttons == null ? new List<ButtonData>() : buttons;
 
         foreach (TextData data in texts) {
-            Text text = GameObject.Find(string.Format("{0}/{1}/{2}", gameObject.name, row.name, data.Name)).GetComponent<Text>();
-            if (text == null) {
-                CustomLogger.Instance.Error(string.Format("Text not found: {0}", data.Name));
-            } else {
+            try {
+                Text text = GameObject.Find(string.Format("{0}/{1}/{2}", gameObject.name, row.name, data.Name)).GetComponent<Text>();
                 text.text = data.Text;
                 text.gameObject.SetActive(data.Active);
+            } catch {
+                CustomLogger.Instance.Error(string.Format("Text not found: {0}", data.Name));
             }
         }
         foreach(ImageData data in images) {
-            Image image = GameObject.Find(string.Format("{0}/{1}/{2}", gameObject.name, row.name, data.Name)).GetComponent<Image>();
-            if (image == null) {
-                CustomLogger.Instance.Error(string.Format("Image not found: {0}", data.Name));
-            } else {
+            try {
+                Image image = GameObject.Find(string.Format("{0}/{1}/{2}", gameObject.name, row.name, data.Name)).GetComponent<Image>();
                 image.sprite = SpriteManager.Instance.Get_Sprite(data.Sprite_Name, data.Sprite_Type);
                 image.gameObject.SetActive(data.Active);
+            } catch {
+                CustomLogger.Instance.Error(string.Format("Image not found: {0}", data.Name));
             }
         }
         foreach (ButtonData data in buttons) {
-            Button button = GameObject.Find(string.Format("{0}/{1}/{2}", gameObject.name, row.name, data.Name)).GetComponent<Button>();
-            if (button == null) {
-                CustomLogger.Instance.Error(string.Format("Button not found: {0}", data.Name));
-            } else {
+            try {
+                Button button = GameObject.Find(string.Format("{0}/{1}/{2}", gameObject.name, row.name, data.Name)).GetComponent<Button>();
                 Button.ButtonClickedEvent click = new Button.ButtonClickedEvent();
                 click.AddListener(new UnityAction(data.Action));
                 button.onClick = click;
                 button.gameObject.SetActive(data.Active);
                 button.interactable = data.Interactable;
-                if(data.Text != null) {
+                if (data.Text != null) {
                     Text button_text = GameObject.Find(string.Format("{0}/{1}/{2}", gameObject.name, row.name, data.Name)).GetComponentInChildren<Text>();
-                    if(button_text == null) {
+                    if (button_text == null) {
                         CustomLogger.Instance.Error(string.Format("Text for button not found: {0}", data.Name));
                     } else {
                         button_text.text = data.Text;
                     }
                 }
+            } catch {
+                CustomLogger.Instance.Error(string.Format("Button not found: {0}", data.Name));
             }
         }
     }

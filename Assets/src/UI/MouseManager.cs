@@ -7,6 +7,8 @@ public class MouseManager : MonoBehaviour
     
     private bool cursor_visibility;
 
+    public Vector3 Hit_Normal { get; private set; }
+
     /// <summary>
     /// Initialization
     /// </summary>
@@ -67,6 +69,7 @@ public class MouseManager : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(CameraManager.Instance.Camera.ScreenPointToRay(Input.mousePosition), out hit)) {
                 string name = hit.transform.gameObject.name;
+                Hit_Normal = hit.normal;
                 long? block_id = Block.Parse_Id_From_GameObject_Name(name);
                 if (block_id.HasValue) {
                     return Map.Instance.Get_Block(block_id.Value);

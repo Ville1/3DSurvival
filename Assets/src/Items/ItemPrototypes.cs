@@ -13,8 +13,8 @@ public class ItemPrototypes
 
         prototypes.Add(new Item("Stone", "stone", 100, 1.0f, 1.0f, "stone", SpriteManager.SpriteType.Item));
 
-        prototypes.Add(new Tool("Dev Hammer", "dev_hammer", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Hammer, 999, 100.0f));
-        prototypes.Add(new Tool("Dev Pickaxe", "dev_pickaxe", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Pickaxe, 999, 100.0f));
+        prototypes.Add(new Tool("Dev Hammer", "dev_hammer", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Hammer, 999, 10.0f));
+        prototypes.Add(new Tool("Dev Pickaxe", "dev_pickaxe", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Pickaxe, 999, 10.0f));
     }
 
     public static ItemPrototypes Instance

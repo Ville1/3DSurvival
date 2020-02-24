@@ -26,7 +26,11 @@ public class KeyboardManager : MonoBehaviour
         }
 
         if (Input.GetButtonDown("Escape")) {
-            MainMenuManager.Instance.Visible = true;
+            if (BuildMenuManager.Instance.Preview_Active) {
+                BuildMenuManager.Instance.Preview_Active = false;
+            } else {
+                MainMenuManager.Instance.Visible = true;
+            }
         }
 
         if (Input.anyKeyDown && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1) && !Input.GetMouseButtonDown(2)) {
@@ -65,7 +69,9 @@ public class KeyboardManager : MonoBehaviour
                             }
                         }
                         if (Input.GetButtonDown("Repair block")) {
-
+                            if (!Player.Current.Repair_Block(block, out message)) {
+                                MessageManager.Instance.Show_Message(message);
+                            }
                         }
                         if (Input.GetButtonDown("Harvest block")) {
 
@@ -74,6 +80,9 @@ public class KeyboardManager : MonoBehaviour
                 }
                 if (Input.GetButtonDown("Inventory")) {
                     InventoryGUIManager.Instance.Toggle();
+                }
+                if(Input.GetButtonDown("Build menu")) {
+                    BuildMenuManager.Instance.Toggle();
                 }
             }
         } else {

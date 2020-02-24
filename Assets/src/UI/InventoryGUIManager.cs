@@ -58,6 +58,9 @@ public class InventoryGUIManager : MonoBehaviour {
             MouseManager.Instance.Show_Cursor = value;
             list.Reset_Scroll();
             if (Active) {
+                MainMenuManager.Instance.Visible = false;
+                BuildMenuManager.Instance.Active = false;
+                BuildMenuManager.Instance.Preview_Active = false;
                 Update_GUI();
             }
         }

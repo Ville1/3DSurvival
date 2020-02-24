@@ -23,6 +23,13 @@ public class Coordinates
         Z = coordinates.Z;
     }
 
+    public Coordinates(Vector3 vector)
+    {
+        X = (int)vector.x;
+        Y = (int)vector.y;
+        Z = (int)vector.z;
+    }
+
     public Vector3 Vector
     {
         get {
@@ -35,11 +42,12 @@ public class Coordinates
         }
     }
     
-    public void Shift(Coordinates coordinates)
+    public Coordinates Shift(Coordinates coordinates)
     {
         X += coordinates.X;
         Y += coordinates.Y;
         Z += coordinates.Z;
+        return this;
     }
     
     public string Parse_Text(bool brackets, bool spaces)

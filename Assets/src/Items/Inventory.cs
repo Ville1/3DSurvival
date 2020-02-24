@@ -82,6 +82,17 @@ public class Inventory : IEnumerable<Item> {
         return items.Exists(x => x is Tool && (x as Tool).Type == type && (x as Tool).Level >= level);
     }
 
+    public bool Has_Items(string internal_name, int count)
+    {
+        int total = 0;
+        foreach(Item item in items) {
+            if(item.Internal_Name == internal_name) {
+                total++;
+            }
+        }
+        return total >= count;
+    }
+
     public Tool Get_Tool(Tool.ToolType type, int level)
     {
         return (Tool)items.OrderByDescending(x => x is Tool ? (x as Tool).Level : 0).FirstOrDefault(x => x is Tool && (x as Tool).Type == type && (x as Tool).Level >= level);
@@ -100,6 +111,15 @@ public class Inventory : IEnumerable<Item> {
     public void Remove(Item item)
     {
         items.Remove(item);
+    }
+
+    public Item Remove(string internal_name)
+    {
+        Item item = items.Where(x => x.Internal_Name == internal_name).OrderBy(x => x.Unbreaking ? 999.9f : x.Durability).FirstOrDefault();
+        if(item != null) {
+            items.Remove(item);
+        }
+        return item;
     }
 
     public List<Item> Get_Items(string internal_name)

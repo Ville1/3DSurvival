@@ -10,25 +10,29 @@ public class Map {
     public int Size_Y { get; private set; }
     public int Size_Z { get; private set; }
     public GameObject Entity_Container { get; private set; }
+    public GameObject Block_Container { get; private set; }
 
     private GameObject game_object;
-    private GameObject block_container;
     private List<Block> blocks;
     private List<Entity> entities;
     private List<Entity> entities_to_be_added;
     private List<Entity> entities_to_be_removed;
+    private List<Block> blocks_to_be_added;
+    private List<Block> blocks_to_be_removed;
     private Block player_spawn;
     private bool active;
 
     private Map()
     {
         game_object = GameObject.Find("Map");
-        block_container = GameObject.Find("Map/Blocks");
+        Block_Container = GameObject.Find("Map/Blocks");
         Entity_Container = GameObject.Find("Map/Entitys");
         blocks = new List<Block>();
         entities = new List<Entity>();
         entities_to_be_added = new List<Entity>();
         entities_to_be_removed = new List<Entity>();
+        blocks_to_be_added = new List<Block>();
+        blocks_to_be_removed = new List<Block>();
         active = false;
     }
 
@@ -67,8 +71,7 @@ public class Map {
         for(int x = 0; x < Size_X; x++) {
             for(int y = 0; y < Size_Y; y++) {
                 for (int z = 0; z < Size_Z; z++) {
-                    Block block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get(y < Size_Y / 2 ? "rock" : BlockPrototypes.AIR_INTERNAL_NAME), block_container);
-                    blocks.Add(block);
+                    Block block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get(y < Size_Y / 2 ? "rock" : BlockPrototypes.AIR_INTERNAL_NAME), Block_Container);
                 }
             }
         }
@@ -114,6 +117,16 @@ public class Map {
             entities.Remove(entity);
         }
         entities_to_be_removed.Clear();
+
+        foreach (Block block in blocks_to_be_added) {
+            blocks.Add(block);
+        }
+        blocks_to_be_added.Clear();
+
+        foreach (Block block in blocks_to_be_removed) {
+            blocks.Remove(block);
+        }
+        blocks_to_be_removed.Clear();
     }
 
     public void Add_Entity(Entity entity)
@@ -130,6 +143,28 @@ public class Map {
         }
     }
 
+    public void Add_Block(Block block)
+    {
+        if (!active) {
+            blocks.Add(block);
+            return;
+        }
+        if (!blocks_to_be_added.Exists(x => x.Id == block.Id)) {
+            blocks_to_be_added.Add(block);
+        }
+    }
+
+    public void Remove_Block(Block block)
+    {
+        if (!active) {
+            blocks.Remove(block);
+            return;
+        }
+        if (!blocks_to_be_removed.Exists(x => x.Id == block.Id)) {
+            blocks_to_be_removed.Add(block);
+        }
+    }
+
     public Entity Get_Entity(long entity_id)
     {
         return entities.FirstOrDefault(x => x.Id == entity_id);
@@ -138,6 +173,11 @@ public class Map {
     public Block Get_Block(long block_id)
     {
         return blocks.FirstOrDefault(x => x.Id == block_id);
+    }
+
+    public Block Get_Block_At(Coordinates coordinates)
+    {
+        return blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
     }
 
     private void Delete()
