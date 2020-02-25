@@ -12,7 +12,7 @@ public class ItemPrototypes
         prototypes = new List<Item>();
 
         prototypes.Add(new Item("Stone", "stone", 100, 1.0f, 1.0f, "stone", SpriteManager.SpriteType.Item));
-        prototypes.Add(new Item("Wood", "wood", 100, 1.0f, 1.0f, "wood", SpriteManager.SpriteType.Item));
+        prototypes.Add(new Item("Wood", "wood", 100, 30.0f, 1.0f, "wood", SpriteManager.SpriteType.Item));
 
         prototypes.Add(new Tool("Dev Hammer", "dev_hammer", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Hammer, 999, 50.0f));
         prototypes.Add(new Tool("Dev Pickaxe", "dev_pickaxe", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Pickaxe, 999, 50.0f));

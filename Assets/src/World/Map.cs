@@ -185,6 +185,12 @@ public class Map {
         return blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
     }
 
+    //TODO: this
+    public Block Find_Closest_Passable_Block(Coordinates coordinates)
+    {
+        return blocks.Where(x => x.Coordinates.X == coordinates.X && x.Coordinates.Z == coordinates.Z && x.Passable).OrderBy(x => x.Coordinates.Y).FirstOrDefault();
+    }
+
     public bool Active
     {
         get {

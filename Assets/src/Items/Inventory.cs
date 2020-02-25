@@ -107,7 +107,7 @@ public class Inventory : IEnumerable<Item> {
 
     public bool Can_Fit(Item item)
     {
-        return (!Limited_Weight || item.Weight <= 0.0f || (Current_Weight + item.Weight <= Max_Weight)) || (!Limited_Volyme || item.Volyme <= 0.0f || (Current_Volyme + item.Volyme <= Max_Volyme));
+        return (!Limited_Weight || item.Weight <= 0.0f || (Current_Weight + item.Weight <= Max_Weight)) && (!Limited_Volyme || item.Volyme <= 0.0f || (Current_Volyme + item.Volyme <= Max_Volyme));
     }
 
     public Item Add(Item item)

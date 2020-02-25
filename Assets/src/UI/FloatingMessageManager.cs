@@ -12,9 +12,12 @@ public class FloatingMessageManager : MonoBehaviour
     public GameObject Text_Prototype;
     public int Max_Height;
     public int Message_Time;
+    public float Cooldown;
 
     private List<TextData> texts;
     private Vector2 starting_position;
+    private List<string> queue;
+    private float current_cooldown;
 
     /// <summary>
     /// Initializiation
@@ -29,6 +32,8 @@ public class FloatingMessageManager : MonoBehaviour
         Text_Prototype.SetActive(false);
         starting_position = new Vector2(Text_Prototype.transform.position.x, Text_Prototype.transform.position.y);
         texts = new List<TextData>();
+        queue = new List<string>();
+        current_cooldown = 0.0f;
     }
 
     /// <summary>
@@ -36,6 +41,11 @@ public class FloatingMessageManager : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        current_cooldown = Mathf.Clamp(current_cooldown - Time.deltaTime, 0.0f, Cooldown);
+        if(current_cooldown == 0.0f && queue.Count != 0) {
+            Show(queue[0]);
+            queue.RemoveAt(0);
+        }
         List<TextData> delete = new List<TextData>();
         foreach(TextData data in texts) {
             data.Time = Mathf.Max(0.0f, data.Time - Time.deltaTime);
@@ -52,6 +62,11 @@ public class FloatingMessageManager : MonoBehaviour
 
     public void Show(string message)
     {
+        if(current_cooldown != 0.0f) {
+            queue.Add(message);
+            return;
+        }
+        current_cooldown = Cooldown;
         GameObject game_object = GameObject.Instantiate(
             Text_Prototype,
             Text_Prototype.transform.position,

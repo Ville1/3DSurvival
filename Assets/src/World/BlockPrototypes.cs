@@ -14,11 +14,15 @@ public class BlockPrototypes {
 
         Verb dismantle_verb = new Verb("Dismantle", "Dismantling");
         Verb mine_verb = new Verb("Mine", "Mining");
-        
+
+        Verb harvest_verb = new Verb("Harvest", "Harvesting");
+
         prototypes.Add(new Block("Rock", "rock", "rock", false, false, false, 100, "rock", SpriteManager.SpriteType.Block, 1.0f, 1.0f, new Dictionary<string, int>() { { "stone", 1 } },
             new Dictionary<string, int>() { { "stone", 1 } }, new Dictionary<Skill.SkillId, int>() { { Skill.SkillId.Mining, 1 } }, new Dictionary<Skill.SkillId, int>() { { Skill.SkillId.Masonry, 1 } },
-            mine_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Pickaxe, 1 } }, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Hammer, 1 } }, BuildMenuManager.TabType.Misc));
-        prototypes.Add(new Block("Air", AIR_INTERNAL_NAME, "air", true, true, true, -1, "placeholder", SpriteManager.SpriteType.UI, 1.0f, 1.0f, null, null, null, null, dismantle_verb, null, null, null));
+            mine_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Pickaxe, 1 } }, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Hammer, 1 } }, BuildMenuManager.TabType.Misc, 50.0f, "planks",
+            new Dictionary<string, int>() { { "wood", 1 } }, null, null, harvest_verb));
+        prototypes.Add(new Block("Planks", "planks", "planks", false, false, false, 100, "planks", SpriteManager.SpriteType.Block, 1.0f, 1.0f, null, null, null, null, dismantle_verb, null, null, null, -1.0f, null, null, null, null, null));
+        prototypes.Add(new Block("Air", AIR_INTERNAL_NAME, "air", true, true, true, -1, "placeholder", SpriteManager.SpriteType.UI, 1.0f, 1.0f, null, null, null, null, dismantle_verb, null, null, null, -1.0f, null, null, null, null, null));
     }
 
     public static BlockPrototypes Instance

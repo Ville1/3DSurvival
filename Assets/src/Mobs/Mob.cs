@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Mob : Entity
 {
-    private enum ActionType { Moving, Dismantle, Repair, Build, Craft }
+    private enum ActionType { Moving, Dismantle, Repair, Build, Craft, Harvest }
 
     private static readonly float VERTICAL_MOVEMENT_FORCE_MULTIPLIER = 200.0f;
     private static readonly float HORIZONTAL_SPEED_MULTIPLIER = 2.5f;
@@ -13,6 +13,8 @@ public class Mob : Entity
     private static readonly float OPERATION_RANGE = 4.0f;
 
     private static readonly string MESSAGE_INDESTRUCTIBLE = "Indestructible";
+    private static readonly string MESSAGE_UNDAMAGED = "Undamaged";
+    private static readonly string MESSAGE_UNHARVESTABLE = "Unharvestable";
     private static readonly string MESSAGE_OBSTRUCTED = "Obstructed";
     private static readonly string MESSAGE_CANT_REACH = "Out of reach";
     private static readonly string MESSAGE_INSUFFICENT_SKILL = "Insufficent {0} skill, {1} required";
@@ -168,6 +170,20 @@ public class Mob : Entity
             //TODO: Tool durability
         }
 
+        //Harvesting
+        ActionData harvesting = actions.FirstOrDefault(x => x.Type == ActionType.Harvest);
+        if (harvesting != null) {
+            List<Tool> tools_used = new List<Tool>();
+            float tool_efficency = Get_Tool_Efficency(harvesting.Target.Tools_Required_To_Harvest, out tools_used);
+            if (!harvesting.Target.Harvest(delta_time * Dismantling_Speed * tool_efficency * harvesting.Target.Harvest_Speed, Inventory)) {
+                harvesting.Text = string.Format(PROGRESS_TEXT, string.Format("{0} {1}", harvesting.Target.Harvest_Verb.Present, harvesting.Target.Name), Helper.Float_To_String(100.0f * harvesting.Target.Harvest_Progress_Relative, 0));
+            } else {
+                FloatingMessageManager.Instance.Show("Harvesting finished");
+                harvesting.Finished = true;
+            }
+            //TODO: Tool durability
+        }
+
         //Crafting
         ActionData crafting = actions.FirstOrDefault(x => x.Type == ActionType.Craft);
         if(crafting != null) {
@@ -182,8 +198,9 @@ public class Mob : Entity
                 List<long> added_outputs = new List<long>();
                 foreach(KeyValuePair<string, int> output in crafting.Recipe.Outputs) {
                     for(int i = 0; i < output.Value; i++) {
-                        if (Inventory.Can_Fit(ItemPrototypes.Instance.Get_Item(output.Key))) {
-                            Item added = Inventory.Add(ItemPrototypes.Instance.Get_Item(output.Key));
+                        Item item = ItemPrototypes.Instance.Get_Item(output.Key);
+                        if (Inventory.Can_Fit(item)) {
+                            Item added = Inventory.Add(item);
                             added_outputs.Add(added.Id);
                         } else {
                             failed = true;
@@ -280,7 +297,7 @@ public class Mob : Entity
         }
     }
 
-    public bool Dismantle_Block(Block block, out string message)
+    public bool Can_Dismantle(Block block, out string message, bool ignore_reach = false)
     {
         message = null;
         if (block.Indestructible) {
@@ -290,14 +307,23 @@ public class Mob : Entity
         if (!Can_Work(out message)) {
             return false;
         }
-        if (!Can_Operate(block)) {
+        if (!ignore_reach && !Can_Operate(block)) {
             message = MESSAGE_CANT_REACH;
             return false;
         }
-        if(!Has_Skills(block.Skills_Required_To_Dismantle, out message)) {
+        if (!Has_Skills(block.Skills_Required_To_Dismantle, out message)) {
             return false;
         }
-        if(!Has_Tools(block.Tools_Required_To_Dismantle, out message)) {
+        if (!Has_Tools(block.Tools_Required_To_Dismantle, out message)) {
+            return false;
+        }
+        return true;
+    }
+
+    public bool Dismantle_Block(Block block, out string message)
+    {
+        message = null;
+        if (!Can_Dismantle(block, out message)) {
             return false;
         }
         actions.Add(new ActionData(block.Dismantle_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Dismantle_Verb.Present, block.Name),
@@ -305,24 +331,37 @@ public class Mob : Entity
         return true;
     }
 
-    public bool Repair_Block(Block block, out string message)
+    public bool Can_Repair(Block block, out string message, bool ignore_reach = false)
     {
         message = null;
         if (block.Indestructible) {
             message = MESSAGE_INDESTRUCTIBLE;
             return false;
         }
-        if (!Can_Work(out message)) {
+        if (!ignore_reach && !Can_Work(out message)) {
             return false;
         }
         if (!Can_Operate(block)) {
             message = MESSAGE_CANT_REACH;
             return false;
         }
+        if (!block.Can_Be_Repaired) {
+            message = MESSAGE_UNDAMAGED;
+            return false;
+        }
         if (!Has_Skills(block.Skills_Required_To_Build, out message)) {
             return false;
         }
         if (!Has_Tools(block.Tools_Required_To_Build, out message)) {
+            return false;
+        }
+        return true;
+    }
+
+    public bool Repair_Block(Block block, out string message)
+    {
+        message = null;
+        if (!Can_Repair(block, out message)) {
             return false;
         }
         actions.Add(new ActionData("Repair", string.Format(PROGRESS_TEXT, string.Format("Repairing {0}", block.Name), Helper.Float_To_String(100.0f * block.Relative_HP, 0)),
@@ -354,6 +393,44 @@ public class Mob : Entity
         target.Change_To(prototype, true, 0.01f);
         actions.Add(new ActionData("Build", string.Format(PROGRESS_TEXT, string.Format("Building {0}", prototype.Name), Helper.Float_To_String(100.0f * target.Relative_HP, 0)),
             ActionType.Build, true, target));
+        return true;
+    }
+
+    public bool Can_Harvest(Block block, out string message, bool ignore_reach = false)
+    {
+        message = null;
+        if (block.Indestructible) {
+            message = MESSAGE_INDESTRUCTIBLE;
+            return false;
+        }
+        if (!ignore_reach && !block.Harvestable) {
+            message = MESSAGE_UNHARVESTABLE;
+            return false;
+        }
+        if (!Can_Work(out message)) {
+            return false;
+        }
+        if (!Can_Operate(block)) {
+            message = MESSAGE_CANT_REACH;
+            return false;
+        }
+        if (!Has_Skills(block.Skills_Required_To_Harvest, out message)) {
+            return false;
+        }
+        if (!Has_Tools(block.Tools_Required_To_Harvest, out message)) {
+            return false;
+        }
+        return true;
+    }
+
+    public bool Harvest_Block(Block block, out string message)
+    {
+        message = null;
+        if (!Can_Harvest(block, out message)) {
+            return false;
+        }
+        actions.Add(new ActionData(block.Harvest_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Harvest_Verb.Present, block.Name),
+            Helper.Float_To_String(100.0f * block.Harvest_Progress_Relative, 0)), ActionType.Harvest, true, block));
         return true;
     }
 

@@ -34,7 +34,9 @@ public class KeyboardManager : MonoBehaviour
                 BuildMenuManager.Instance.Active = false;
             } else if (CraftingMenuManager.Instance.Active) {
                 CraftingMenuManager.Instance.Active = false;
-            } else {
+            } else if (MainMenuManager.Instance.Visible) {
+                MainMenuManager.Instance.Visible = false;
+            } else{
                 MainMenuManager.Instance.Visible = true;
             }
         }
@@ -80,7 +82,9 @@ public class KeyboardManager : MonoBehaviour
                             }
                         }
                         if (Input.GetButtonDown("Harvest block")) {
-
+                            if(!Player.Current.Harvest_Block(block, out message)) {
+                                MessageManager.Instance.Show_Message(message);
+                            }
                         }
                     }
                 }

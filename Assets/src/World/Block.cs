@@ -23,18 +23,28 @@ public class Block : MapObject {
     public SpriteManager.SpriteType UI_Sprite_Type { get; private set; }
     public float Dismantle_Speed { get; private set; }
     public float Build_Speed { get; private set; }
+    public float Harvest_Speed { get; private set; }
+    public bool Harvestable { get { return !Indestructible && Harvest_Speed > 0.0f; } }
+    public string After_Harvest_Prototype { get; private set; }
+    public float Harvest_Progress { get; private set; }
+    public float Harvest_Progress_Relative { get { return Harvestable ? Harvest_Progress / MAX_HP : 0.0f; } }
+    public Verb Harvest_Verb { get; private set; }
+    public Dictionary<string, int> Harvest_Drops { get; private set; }
     public Dictionary<string, int> Dismantle_Drops { get; private set; }
     public Dictionary<string, int> Materials_Required_To_Build { get; private set; }
     public Dictionary<Skill.SkillId, int> Skills_Required_To_Dismantle { get; private set; }
     public Dictionary<Skill.SkillId, int> Skills_Required_To_Build { get; private set; }
     public Dictionary<Tool.ToolType, int> Tools_Required_To_Dismantle { get; private set; }
     public Dictionary<Tool.ToolType, int> Tools_Required_To_Build { get; private set; }
+    public Dictionary<Skill.SkillId, int> Skills_Required_To_Harvest { get; private set; }
+    public Dictionary<Tool.ToolType, int> Tools_Required_To_Harvest { get; private set; }
     public Verb Dismantle_Verb { get; private set; }
     public float Relative_HP { get { return Indestructible ? 1.0f : HP / MAX_HP; } }
     public bool Completed { get; private set; }
     public BuildMenuManager.TabType? Build_Menu_Tab { get; private set; }
     public bool Buildable { get { return Build_Menu_Tab.HasValue; } }
     public bool Preview { get; private set; }
+    public bool Can_Be_Repaired { get { return Relative_HP != 1.0f || Harvest_Progress != 0.0f; } }
 
     private GameObject crack_cube;
 
@@ -60,7 +70,8 @@ public class Block : MapObject {
 
     public Block(string name, string internal_name, string material, bool passable, bool can_be_built_over, bool inactive, int hp, string ui_sprite, SpriteManager.SpriteType ui_sprite_type, float dismantle_speed,
         float build_speed, Dictionary<string, int> dismantle_drops, Dictionary<string, int> building_materials, Dictionary<Skill.SkillId, int> dismantle_skills, Dictionary<Skill.SkillId, int> build_skills,
-        Verb dismantle_verb, Dictionary<Tool.ToolType, int> tools_required_to_dismantle, Dictionary<Tool.ToolType, int> tools_required_to_build, BuildMenuManager.TabType? build_menu_tab) : 
+        Verb dismantle_verb, Dictionary<Tool.ToolType, int> tools_required_to_dismantle, Dictionary<Tool.ToolType, int> tools_required_to_build, BuildMenuManager.TabType? build_menu_tab, float harvest_speed,
+        string after_harvest_prototype, Dictionary<string, int> harvest_drops, Dictionary<Skill.SkillId, int> skills_required_to_harvest, Dictionary<Tool.ToolType, int> tools_required_to_harvest, Verb harvest_verb) : 
         base(name, PREFAB_NAME, material, MaterialManager.MaterialType.Block, null)
     {
         Id = -1;
@@ -88,6 +99,13 @@ public class Block : MapObject {
         Tools_Required_To_Build = tools_required_to_build != null ? Helper.Clone_Dictionary(tools_required_to_build) : new Dictionary<Tool.ToolType, int>();
         Completed = true;
         Build_Menu_Tab = build_menu_tab;
+        Harvest_Speed = harvest_speed;
+        After_Harvest_Prototype = after_harvest_prototype;
+        Harvest_Progress = -1.0f;
+        Harvest_Drops = harvest_drops != null ? Helper.Clone_Dictionary(harvest_drops) : new Dictionary<string, int>();
+        Skills_Required_To_Harvest = skills_required_to_harvest != null ? Helper.Clone_Dictionary(skills_required_to_harvest) : new Dictionary<Skill.SkillId, int>();
+        Tools_Required_To_Harvest = tools_required_to_harvest != null ? Helper.Clone_Dictionary(tools_required_to_harvest) : new Dictionary<Tool.ToolType, int>();
+        Harvest_Verb = new Verb(harvest_verb);
     }
 
     public Coordinates Coordinates
@@ -138,6 +156,13 @@ public class Block : MapObject {
         Completed = HP == MAX_HP;
         Build_Menu_Tab = prototype.Build_Menu_Tab;
         Preview = is_preview;
+        Harvest_Speed = prototype.Harvest_Speed;
+        After_Harvest_Prototype = prototype.After_Harvest_Prototype;
+        Harvest_Progress = 0.0f;
+        Harvest_Drops = Helper.Clone_Dictionary(prototype.Harvest_Drops);
+        Skills_Required_To_Harvest = Helper.Clone_Dictionary(prototype.Skills_Required_To_Harvest);
+        Tools_Required_To_Harvest = Helper.Clone_Dictionary(prototype.Tools_Required_To_Harvest);
+        Harvest_Verb = new Verb(prototype.Harvest_Verb);
 
         GameObject.SetActive(!Inactive_GameObject);
         if (update_material) {
@@ -186,6 +211,7 @@ public class Block : MapObject {
 
     public bool RepairOrBuild(float amount)
     {
+        Harvest_Progress = 0.0f;
         HP = Mathf.Min(MAX_HP, HP + amount);
         HP_Dismantled = Mathf.Max(0.0f, HP_Dismantled - amount);
         if(!Completed) {
@@ -196,6 +222,44 @@ public class Block : MapObject {
         }
         Update_Material();
         return HP == MAX_HP;
+    }
+
+    public bool Harvest(float amount, Inventory inventory)
+    {
+        if (!Harvestable) {
+            return false;
+        }
+        Harvest_Progress = Mathf.Min(MAX_HP, Harvest_Progress + amount);
+        bool harvested = Harvest_Progress == MAX_HP;
+        if (harvested) {
+            Block prototype = BlockPrototypes.Instance.Get(string.IsNullOrEmpty(After_Harvest_Prototype) ? BlockPrototypes.AIR_INTERNAL_NAME : After_Harvest_Prototype);
+            Inventory ground_drops = new Inventory();
+            Inventory added_items = new Inventory();
+            foreach(KeyValuePair<string, int> drop in Harvest_Drops) {
+                for(int i = 0; i < drop.Value; i++) {
+                    Item item = ItemPrototypes.Instance.Get_Item(drop.Key);
+                    if (inventory.Can_Fit(item)) {
+                        inventory.Add(item);
+                        added_items.Add(item);
+                    } else {
+                        ground_drops.Add(item);
+                    }
+                }
+            }
+            if (inventory == Player.Current.Inventory && !added_items.Is_Empty) {
+                FloatingMessageManager.Instance.Show(added_items.Parse_Text(true));
+            }
+            Change_To(prototype);
+            if (!ground_drops.Is_Empty) {
+                Block closest = Map.Instance.Find_Closest_Passable_Block(Coordinates);
+                if(closest != null) {
+                    ItemPile pile = new ItemPile(closest.Position, ItemPile.Prototype, Map.Instance.Entity_Container, inventory);
+                } else {
+                    CustomLogger.Instance.Warning("Block not found");
+                }
+            }
+        }
+        return harvested;
     }
 
     public new void Delete()
