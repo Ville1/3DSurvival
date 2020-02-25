@@ -65,20 +65,23 @@ public class InspectorManager : MonoBehaviour
             List<string> possible_actions = new List<string>();
             string s = null;
             if (!block.Indestructible) {
-                actions.Add("M", block.Dismantle_Verb.Base);
+                string dismantle_button = KeyboardManager.Instance.Get_Key_Bind("Dismantle block");
+                actions.Add(dismantle_button, block.Dismantle_Verb.Base);
                 if (Player.Current.Can_Dismantle(block, out s, true)) {
-                    possible_actions.Add("M");
+                    possible_actions.Add(dismantle_button);
                 }
                 if (block.Can_Be_Repaired) {
-                    actions.Add("R", "Repair");
+                    string repair_button = KeyboardManager.Instance.Get_Key_Bind("Repair block");
+                    actions.Add(repair_button, "Repair");
                     if (Player.Current.Can_Repair(block, out s, true)) {
-                        possible_actions.Add("R");
+                        possible_actions.Add(repair_button);
                     }
                 }
                 if (block.Harvestable) {
-                    actions.Add("H", block.Harvest_Verb.Base);
+                    string harvest_button = KeyboardManager.Instance.Get_Key_Bind("Harvest block");
+                    actions.Add(harvest_button, block.Harvest_Verb.Base);
                     if (Player.Current.Can_Harvest(block, out s, true)) {
-                        possible_actions.Add("H");
+                        possible_actions.Add(harvest_button);
                     }
                 }
             }
@@ -88,16 +91,16 @@ public class InspectorManager : MonoBehaviour
                     if (!possible_actions.Contains(pair.Key)) {
                         builder.Append("<i>");
                     }
-                    builder.Append(pair.Key).Append(" = ").Append(pair.Value).Append(", ");
+                    builder.Append(pair.Key).Append(" = ").Append(pair.Value);
                     if (!possible_actions.Contains(pair.Key)) {
                         builder.Append("</i>");
                     }
+                    builder.Append(", ");
                 }
                 Block_Actions_Text.text = builder.Remove(builder.Length - 2, 2).ToString();
             } else {
                 Block_Actions_Text.text = string.Empty;
             }
-
         } else if(Target is Mob) {
             Mob_Data_Container.SetActive(true);
             Mob mob = Target as Mob;

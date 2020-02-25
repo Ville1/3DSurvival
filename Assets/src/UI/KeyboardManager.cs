@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 public class KeyboardManager : MonoBehaviour
 {
@@ -101,5 +102,32 @@ public class KeyboardManager : MonoBehaviour
         } else {
             MasterUIManager.Instance.Read_Keyboard_Input();
         }
+    }
+    
+    public string Get_Key_Bind(string button)
+    {
+        switch (button) {
+            case "Dismantle block":
+                return "M";
+            case "Repair block":
+                return "R";
+            case "Harvest block":
+                return "H";
+        }
+        return string.Empty;
+        //TODO: https://stackoverflow.com/questions/40231499/how-do-i-get-the-keycode-currently-assigned-to-the-input-manager
+        /*var inputManager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset")[0];
+        SerializedObject obj = new SerializedObject(inputManager);
+        SerializedProperty axisArray = obj.FindProperty("m_Axes");
+        if (axisArray.arraySize == 0) {
+            return null;
+        }
+        for (int i = 0; i < axisArray.arraySize; ++i) {
+            var axis = axisArray.GetArrayElementAtIndex(i);
+            if (axis.displayName == button) {
+                return axis.stringValue;
+            }
+        }
+        return null;*/
     }
 }

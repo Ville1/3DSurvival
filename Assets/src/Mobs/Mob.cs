@@ -297,17 +297,17 @@ public class Mob : Entity
         }
     }
 
-    public bool Can_Dismantle(Block block, out string message, bool ignore_reach = false)
+    public bool Can_Dismantle(Block block, out string message, bool ignore_reach_and_current_actions = false)
     {
         message = null;
         if (block.Indestructible) {
             message = MESSAGE_INDESTRUCTIBLE;
             return false;
         }
-        if (!Can_Work(out message)) {
+        if (!ignore_reach_and_current_actions && !Can_Work(out message)) {
             return false;
         }
-        if (!ignore_reach && !Can_Operate(block)) {
+        if (!ignore_reach_and_current_actions && !Can_Operate(block)) {
             message = MESSAGE_CANT_REACH;
             return false;
         }
@@ -331,17 +331,17 @@ public class Mob : Entity
         return true;
     }
 
-    public bool Can_Repair(Block block, out string message, bool ignore_reach = false)
+    public bool Can_Repair(Block block, out string message, bool ignore_reach_and_current_actions = false)
     {
         message = null;
         if (block.Indestructible) {
             message = MESSAGE_INDESTRUCTIBLE;
             return false;
         }
-        if (!ignore_reach && !Can_Work(out message)) {
+        if (!ignore_reach_and_current_actions && !Can_Work(out message)) {
             return false;
         }
-        if (!Can_Operate(block)) {
+        if (!ignore_reach_and_current_actions && !Can_Operate(block)) {
             message = MESSAGE_CANT_REACH;
             return false;
         }
@@ -396,21 +396,21 @@ public class Mob : Entity
         return true;
     }
 
-    public bool Can_Harvest(Block block, out string message, bool ignore_reach = false)
+    public bool Can_Harvest(Block block, out string message, bool ignore_reach_and_current_actions = false)
     {
         message = null;
         if (block.Indestructible) {
             message = MESSAGE_INDESTRUCTIBLE;
             return false;
         }
-        if (!ignore_reach && !block.Harvestable) {
+        if (!block.Harvestable) {
             message = MESSAGE_UNHARVESTABLE;
             return false;
         }
-        if (!Can_Work(out message)) {
+        if (!ignore_reach_and_current_actions && !Can_Work(out message)) {
             return false;
         }
-        if (!Can_Operate(block)) {
+        if (!ignore_reach_and_current_actions && !Can_Operate(block)) {
             message = MESSAGE_CANT_REACH;
             return false;
         }
