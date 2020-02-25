@@ -596,6 +596,13 @@ public class Mob : Entity
         }
     }
 
+    public static Mob Dummy_Prototype
+    {
+        get {
+            return new Mob("Dummy", "Dummy", null, null, null, 0.0f, 0.0f, 999, new List<Skill>(), 0.0f, 0.0f, 0.0f, false);
+        }
+    }
+
     private class ActionData
     {
         public string Name { get; set; }

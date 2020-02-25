@@ -45,6 +45,7 @@ public class Block : MapObject {
     public bool Buildable { get { return Build_Menu_Tab.HasValue; } }
     public bool Preview { get; private set; }
     public bool Can_Be_Repaired { get { return Relative_HP != 1.0f || Harvest_Progress != 0.0f; } }
+    public Chunk Chunk { get; set; }
 
     private GameObject crack_cube;
 

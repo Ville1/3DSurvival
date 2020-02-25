@@ -8,6 +8,7 @@ public class PrefabManager : MonoBehaviour
     public GameObject Block;
     public GameObject Player;
     public GameObject Item_Pile;
+    public GameObject Dummy;
 
     /// <summary>
     /// Initialization

@@ -114,11 +114,13 @@
     <Compile Include="Assets\src\UI\MessageManager.cs" />
     <Compile Include="Assets\src\UI\MouseManager.cs" />
     <Compile Include="Assets\src\UI\PlayerGUIManager.cs" />
+    <Compile Include="Assets\src\UI\ProgressBarManager.cs" />
     <Compile Include="Assets\src\UI\ScrollableList.cs" />
     <Compile Include="Assets\src\UI\TooltipManager.cs" />
     <Compile Include="Assets\src\Verb.cs" />
     <Compile Include="Assets\src\World\Block.cs" />
     <Compile Include="Assets\src\World\BlockPrototypes.cs" />
+    <Compile Include="Assets\src\World\Chunk.cs" />
     <Compile Include="Assets\src\World\CollisionBehaviour.cs" />
     <Compile Include="Assets\src\World\Entity.cs" />
     <Compile Include="Assets\src\World\ItemPile.cs" />

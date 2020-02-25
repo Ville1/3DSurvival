@@ -51,7 +51,7 @@ public class MainMenuManager : MonoBehaviour
     public void New_Game_Button_On_Click()
     {
         Visible = false;
-        Map.Instance.Generate_New(20, 10, 20);
+        Map.Instance.Generate_New(5, 10, 5);
         PlayerGUIManager.Instance.Active = true;
     }
 

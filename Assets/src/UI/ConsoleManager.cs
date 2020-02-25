@@ -147,6 +147,18 @@ public class ConsoleManager : MonoBehaviour
             return "";
         });
 
+        commands.Add("chunk_dist", (string[] arguments) => {
+            if (arguments.Length != 1) {
+                return "Invalid number of arguments";
+            }
+            if(InspectorManager.Instance.Block == null) {
+                return "Select a block";
+            }
+            float dist = Vector2.Distance(InspectorManager.Instance.Block.Chunk.Center, new Vector2(Player.Current.GameObject.transform.position.x, Player.Current.GameObject.transform.position.z));
+            return string.Format("Chunk X:{0} Z:{1} <-> Player X:{2} Z:{3} Dist: {4}", InspectorManager.Instance.Block.Chunk.Center.x, InspectorManager.Instance.Block.Chunk.Center.z, (int)Player.Current.GameObject.transform.position.x
+                ,(int)Player.Current.GameObject.transform.position.z, dist);
+        });
+
         Update_Output();
         Panel.SetActive(false);
     }
