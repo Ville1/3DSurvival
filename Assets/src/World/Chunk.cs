@@ -30,11 +30,6 @@ public class Chunk {
         GameObject.Destroy(GameObject);
     }
 
-    public override string ToString()
-    {
-        return string.Format("Chunk ({0}, {1}) #{2}", X, Z, Id);
-    }
-
     public bool Active
     {
         get {
@@ -50,5 +45,26 @@ public class Chunk {
         get {
             return new Vector3((X * SIZE_X) + (SIZE_X * 0.5f), 0.0f, (Z * SIZE_Z) + (SIZE_Z * 0.5f));
         }
+    }
+
+    public void Generate(int size_y)
+    {
+        int x_start = X * SIZE_X;
+        int z_start = Z * SIZE_Z;
+
+        for (int x = x_start; x < x_start + SIZE_X; x++) {
+            for (int y = 0; y < size_y; y++) {
+                for (int z = z_start; z < z_start + Chunk.SIZE_Z; z++) {
+                    Block block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get(y > size_y / 2 ? BlockPrototypes.AIR_INTERNAL_NAME : "rock"), GameObject);
+                    block.Chunk = this;
+                    Blocks.Add(block);
+                }
+            }
+        }
+    }
+
+    public override string ToString()
+    {
+        return string.Format("Chunk ({0}, {1}) #{2}", X, Z, Id);
     }
 }

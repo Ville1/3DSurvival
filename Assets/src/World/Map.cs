@@ -5,12 +5,12 @@ using UnityEngine;
 
 public class Map {
     private static Map instance;
-
-    public int Size_X { get; private set; }
+    
     public int Size_Y { get; private set; }
-    public int Size_Z { get; private set; }
     public int Chunk_Size_X { get; private set; }
     public int Chunk_Size_Z { get; private set; }
+    public int Initial_Chunk_Size_X { get; private set; }
+    public int Initial_Chunk_Size_Z { get; private set; }
     public GameObject Entity_Container { get; private set; }
     public GameObject Block_Container { get; private set; }
     public bool Generating { get; private set; }
@@ -73,17 +73,17 @@ public class Map {
         }
     }
 
-    public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z)
+    public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z, int initial_chunk_size_x, int initial_chunk_size_z)
     {
         Delete();
         chunk_index_x = 0;
         chunk_index_z = 0;
-
-        Size_X = chunk_size_x * Chunk.SIZE_X;
+        
         Size_Y = size_y;
-        Size_Z = chunk_size_z * Chunk.SIZE_Z;
         Chunk_Size_X = chunk_size_x;
         Chunk_Size_Z = chunk_size_z;
+        Initial_Chunk_Size_X = initial_chunk_size_x;
+        Initial_Chunk_Size_Z = initial_chunk_size_z;
 
         Generating = true;
         ProgressBarManager.Instance.Active = true;
@@ -139,36 +139,27 @@ public class Map {
         }
         blocks_to_be_removed.Clear();
 
+        Generate_Chunks();
         Load_Chunks();
     }
 
     private void Generate()
     {
         Chunk chunk = new Chunk(chunk_index_x, chunk_index_z);
-
-        int x_start = chunk.X * Chunk.SIZE_X;
-        int z_start = chunk.Z * Chunk.SIZE_Z;
-
-        for (int x = x_start; x < x_start + Chunk.SIZE_X; x++) {
-            for(int y = 0; y < Size_Y; y++) {
-                for(int z = z_start; z < z_start + Chunk.SIZE_Z; z++) {
-                    Block block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get(y > Size_Y / 2 ? BlockPrototypes.AIR_INTERNAL_NAME : "rock"), chunk.GameObject);
-                    block.Chunk = chunk;
-                    chunk.Blocks.Add(block);
-                    blocks.Add(block);
-                }
-            }
+        chunk.Generate(Size_Y);
+        foreach(Block block in chunk.Blocks) {
+            blocks.Add(block);
         }
         chunk.Active = false;
 
         chunks.Add(chunk);
         chunk_index_x++;
-        if(chunk_index_x == Chunk_Size_X) {
+        if(chunk_index_x == Initial_Chunk_Size_X) {
             chunk_index_x = 0;
             chunk_index_z++;
         }
 
-        if(chunks.Count == Chunk_Size_X * Chunk_Size_Z) {
+        if(chunks.Count == Initial_Chunk_Size_X * Initial_Chunk_Size_Z) {
             Finish_Generation();
         } else {
             Update_Progress();
@@ -177,7 +168,7 @@ public class Map {
 
     private void Finish_Generation()
     {
-        player_spawn = blocks.OrderBy(x => x.Coordinates.Y).FirstOrDefault(x => x.Coordinates.X == Size_X / 2 && x.Coordinates.Z == Size_Z / 2 && x.Passable);
+        player_spawn = blocks.OrderBy(x => x.Coordinates.Y).FirstOrDefault(x => x.Coordinates.X == (Initial_Chunk_Size_X * Chunk.SIZE_X) / 2 && x.Coordinates.Z == (Initial_Chunk_Size_Z * Chunk.SIZE_Z) / 2 && x.Passable);
         if (player_spawn == null) {
             CustomLogger.Instance.Error("Player spawn not found");
         }
@@ -200,8 +191,25 @@ public class Map {
 
     private void Update_Progress()
     {
-        float progress = (float)chunks.Count / ((float)Chunk_Size_X * (float)Chunk_Size_Z);
+        float progress = (float)chunks.Count / ((float)Initial_Chunk_Size_X * (float)Initial_Chunk_Size_Z);
         ProgressBarManager.Instance.Show(string.Format("Generating map... {0}%", Helper.Float_To_String(100.0f * progress, 1)), progress);
+    }
+
+    private void Generate_Chunks()
+    {
+        int player_x = (int)Player.Current.Position.x / Chunk.SIZE_X;
+        int player_z = (int)Player.Current.Position.z / Chunk.SIZE_Z;
+        for (int x = player_x - (Chunk_Size_X / 2); x < player_x + (Chunk_Size_X / 2); x++) {
+            for (int z = player_z - (Chunk_Size_Z / 2); z < player_z + (Chunk_Size_Z / 2); z++) {
+                Chunk chunk = chunks.FirstOrDefault(c => c.X == x && c.Z == z);
+                if(chunk != null) {
+                    continue;
+                }
+                chunk = new Chunk(x, z);
+                chunk.Generate(Size_Y);
+                chunks.Add(chunk);
+            }
+        }
     }
 
     private void Load_Chunks()
