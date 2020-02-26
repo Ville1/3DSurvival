@@ -65,10 +65,12 @@ public class InspectorManager : MonoBehaviour
             List<string> possible_actions = new List<string>();
             string s = null;
             if (!block.Indestructible) {
-                string dismantle_button = KeyboardManager.Instance.Get_Key_Bind("Dismantle block");
-                actions.Add(dismantle_button, block.Dismantle_Verb.Base);
-                if (Player.Current.Can_Dismantle(block, out s, true)) {
-                    possible_actions.Add(dismantle_button);
+                if (block.Can_Be_Dismantled) {
+                    string dismantle_button = KeyboardManager.Instance.Get_Key_Bind("Dismantle block");
+                    actions.Add(dismantle_button, block.Dismantle_Verb.Base);
+                    if (Player.Current.Can_Dismantle(block, out s, true)) {
+                        possible_actions.Add(dismantle_button);
+                    }
                 }
                 if (block.Can_Be_Repaired) {
                     string repair_button = KeyboardManager.Instance.Get_Key_Bind("Repair block");

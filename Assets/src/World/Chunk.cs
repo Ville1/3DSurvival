@@ -54,8 +54,18 @@ public class Chunk {
 
         for (int x = x_start; x < x_start + SIZE_X; x++) {
             for (int y = 0; y < size_y; y++) {
-                for (int z = z_start; z < z_start + Chunk.SIZE_Z; z++) {
-                    Block block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get(y > size_y / 2 ? BlockPrototypes.AIR_INTERNAL_NAME : "rock"), GameObject);
+                for (int z = z_start; z < z_start + SIZE_Z; z++) {
+                    string prototype = BlockPrototypes.AIR_INTERNAL_NAME;
+                    if(y < size_y / 2 - 1) {
+                        prototype = "rock";
+                    } else if(y == size_y / 2 - 1) {
+                        prototype = "dirt";
+                    } else if (y == size_y / 2) {
+                        prototype = "grass";
+                    } else if (y == size_y / 2 + 1 && RNG.Instance.Next(0, 6) == 0) {
+                        prototype = "tall_grass";
+                    }
+                    Block block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get(prototype), GameObject);
                     block.Chunk = this;
                     Blocks.Add(block);
                 }

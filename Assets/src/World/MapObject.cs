@@ -9,26 +9,31 @@ public class MapObject {
     public MaterialManager.MaterialType? Material_Type { get; protected set; }
     public string Model_Name { get; protected set; }
 
-    public MapObject(string name, Vector3 position, GameObject parent, string prefab_name, string material, MaterialManager.MaterialType? material_type, string model_name, bool active)
+    public MapObject(string name, Vector3 position, GameObject parent, PrototypeData prototype, bool active)
     {
         Name = name;
         Parent = parent;
-        Prefab_Name = prefab_name;
-        Material = material;
-        Material_Type = material_type;
-        Model_Name = model_name;
+        Prefab_Name = prototype.Use_Prefab ? prototype.Prefab_Name : null;
+        Material = prototype.Use_Prefab ? prototype.Material : null;
+        Material_Type = prototype.Use_Prefab ? prototype.Material_Type : null;
+        Model_Name = prototype.Use_Prefab ? null : prototype.Model_Name;
 
         GameObject = GameObject.Instantiate(
-            !string.IsNullOrEmpty(prefab_name) ? PrefabManager.Instance.Get(prefab_name) : ModelManager.Instance.Get(model_name),
+            prototype.Use_Prefab ? PrefabManager.Instance.Get(prototype.Prefab_Name) : ModelManager.Instance.Get(prototype.Model_Name),
             position,
             Quaternion.identity,
             Parent.transform
         );
         GameObject.name = Name;
+        if (!prototype.Use_Prefab) {
+            BoxCollider collider = GameObject.AddComponent<BoxCollider>();
+            collider.isTrigger = !prototype.Has_Collision;
+        }
+
         GameObject.SetActive(active);
         Update_Material();
     }
-
+    
     public MapObject(string name, string prefab_name, string material, MaterialManager.MaterialType? material_type, string model_name)
     {
         Name = name;
@@ -86,5 +91,33 @@ public class MapObject {
             return;
         }
         MeshRenderer.material = MaterialManager.Instance.Get(Material, Material_Type.Value);
+    }
+
+    public class PrototypeData
+    {
+        public string Prefab_Name { get; set; }
+        public string Material { get; set; }
+        public MaterialManager.MaterialType? Material_Type { get; set; }
+        public string Model_Name { get; set; }
+        public bool Has_Collision { get; set; }
+        public bool Use_Prefab { get { return !string.IsNullOrEmpty(Prefab_Name); } }
+
+        public PrototypeData(string prefab_name, string material, MaterialManager.MaterialType? material_type)
+        {
+            Prefab_Name = prefab_name;
+            Material = material;
+            Material_Type = material_type;
+            Model_Name = null;
+            Has_Collision = false;
+        }
+
+        public PrototypeData(string model_name, bool has_collision)
+        {
+            Prefab_Name = null;
+            Material = null;
+            Material_Type = null;
+            Model_Name = model_name;
+            Has_Collision = has_collision;
+        }
     }
 }

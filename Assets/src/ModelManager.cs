@@ -1,39 +1,48 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class ModelManager : MonoBehaviour
-{
-    public static ModelManager Instance { get; private set; }
+public class ModelManager {
+    private readonly string[] MODELS = new string[1] { "grass" };
 
-    public GameObject Grass;
+    private Dictionary<string, GameObject> models;
+    
+    private static ModelManager instance;
 
-    /// <summary>
-    /// Initialization
-    /// </summary>
-    private void Start()
+    private ModelManager()
     {
-        if (Instance != null) {
-            CustomLogger.Instance.Warning(LogMessages.MULTIPLE_INSTANCES);
-            return;
+        models = new Dictionary<string, GameObject>();
+        CustomLogger.Instance.Debug("Loading 3D models...");
+        foreach (string model_name in MODELS) {
+            GameObject model = Resources.Load<GameObject>(string.Format("models/{0}/{1}", model_name, model_name));
+            if(model == null) {
+                CustomLogger.Instance.Error(string.Format("Failed to load model: {0}", model_name));
+            } else {
+                models.Add(model_name, model);
+                CustomLogger.Instance.Debug(string.Format("Model loaded: {0}", model_name));
+            }
         }
-        Instance = this;
+        CustomLogger.Instance.Debug("All 3D models loaded");
     }
 
     /// <summary>
-    /// Per frame update
+    /// Accessor for singleton instance
     /// </summary>
-    private void Update()
+    public static ModelManager Instance
     {
-
+        get {
+            if (instance == null) {
+                instance = new ModelManager();
+            }
+            return instance;
+        }
     }
 
     public GameObject Get(string name)
     {
-        foreach (FieldInfo info in GetType().GetFields()) {
-            if (info.Name == name && info.GetType() == typeof(GameObject)) {
-                return (GameObject)info.GetValue(this);
-            }
+        if (!models.ContainsKey(name)) {
+            CustomLogger.Instance.Error(string.Format("Model not found: {0}", name));
+            return null;
         }
-        return null;
+        return models[name];
     }
 }

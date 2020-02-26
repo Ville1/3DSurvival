@@ -22,9 +22,11 @@ public class Block : MapObject {
     public string UI_Sprite { get; private set; }
     public SpriteManager.SpriteType UI_Sprite_Type { get; private set; }
     public float Dismantle_Speed { get; private set; }
+    public bool Can_Be_Dismantled { get { return Dismantle_Speed > 0.0f; } }
     public float Build_Speed { get; private set; }
     public float Harvest_Speed { get; private set; }
     public bool Harvestable { get { return !Indestructible && Harvest_Speed > 0.0f; } }
+    public bool Instant_Harvest { get { return !Indestructible && Harvest_Speed >= 100.0f; } }
     public string After_Harvest_Prototype { get; private set; }
     public float Harvest_Progress { get; private set; }
     public float Harvest_Progress_Relative { get { return Harvestable ? Harvest_Progress / MAX_HP : 0.0f; } }
@@ -46,11 +48,11 @@ public class Block : MapObject {
     public bool Preview { get; private set; }
     public bool Can_Be_Repaired { get { return Relative_HP != 1.0f || Harvest_Progress != 0.0f; } }
     public Chunk Chunk { get; set; }
+    public bool Use_3DModel { get { return !string.IsNullOrEmpty(Model_Name); } }
 
     private GameObject crack_cube;
 
-    public Block(Coordinates position, Block prototype, GameObject container, float? hp = null, bool is_preview = false) : base(prototype.Name, position.Vector, container, PREFAB_NAME, prototype.Material, MaterialManager.MaterialType.Block,
-        null, !prototype.Inactive_GameObject)
+    public Block(Coordinates position, Block prototype, GameObject container, float? hp = null, bool is_preview = false) : base(prototype.Name, position.Vector, container, prototype.Prototype_Data, !prototype.Inactive_GameObject)
     {
         Id = current_id;
         current_id++;
@@ -69,11 +71,11 @@ public class Block : MapObject {
         }
     }
 
-    public Block(string name, string internal_name, string material, bool passable, bool can_be_built_over, bool inactive, int hp, string ui_sprite, SpriteManager.SpriteType ui_sprite_type, float dismantle_speed,
+    public Block(string name, string internal_name, string material, string model_name, bool passable, bool can_be_built_over, bool inactive, int hp, string ui_sprite, SpriteManager.SpriteType ui_sprite_type, float dismantle_speed,
         float build_speed, Dictionary<string, int> dismantle_drops, Dictionary<string, int> building_materials, Dictionary<Skill.SkillId, int> dismantle_skills, Dictionary<Skill.SkillId, int> build_skills,
         Verb dismantle_verb, Dictionary<Tool.ToolType, int> tools_required_to_dismantle, Dictionary<Tool.ToolType, int> tools_required_to_build, BuildMenuManager.TabType? build_menu_tab, float harvest_speed,
         string after_harvest_prototype, Dictionary<string, int> harvest_drops, Dictionary<Skill.SkillId, int> skills_required_to_harvest, Dictionary<Tool.ToolType, int> tools_required_to_harvest, Verb harvest_verb) : 
-        base(name, PREFAB_NAME, material, MaterialManager.MaterialType.Block, null)
+        base(name, string.IsNullOrEmpty(model_name) ? PREFAB_NAME : null, string.IsNullOrEmpty(model_name) ? material : null, MaterialManager.MaterialType.Block, model_name)
     {
         Id = -1;
         Name = name;
@@ -132,9 +134,13 @@ public class Block : MapObject {
 
     public void Change_To(Block prototype, bool update_material = true, float? hp = null, bool is_preview = false)
     {
+        if(prototype.Name == "Tall grass") {
+            var a = 0;
+        }
         Name = prototype.Name;
         Internal_Name = prototype.Internal_Name;
         Material = prototype.Material;
+        Model_Name = prototype.Model_Name;
         Passable = prototype.Passable;
         Can_Be_Built_Over = prototype.Can_Be_Built_Over;
         Inactive_GameObject = prototype.Inactive_GameObject;
@@ -173,6 +179,9 @@ public class Block : MapObject {
 
     private new void Update_Material()
     {
+        if (Use_3DModel || Inactive_GameObject) {
+            return;
+        }
         base.Update_Material();
         crack_cube.SetActive(false);
         if (Completed && Relative_HP < 1.0f) {
@@ -272,5 +281,14 @@ public class Block : MapObject {
     public override string ToString()
     {
         return string.Format("{0} block #{1} {2}", Internal_Name, Id, Coordinates.Parse_Text(true, true));
+    }
+
+    private PrototypeData Prototype_Data
+    {
+        get {
+            return string.IsNullOrEmpty(Model_Name) ?
+                new PrototypeData(Prefab_Name, Material, Material_Type) :
+                new PrototypeData(Model_Name, !Passable);
+        }
     }
 }

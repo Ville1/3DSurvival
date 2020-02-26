@@ -15,6 +15,7 @@ public class Mob : Entity
     private static readonly string MESSAGE_INDESTRUCTIBLE = "Indestructible";
     private static readonly string MESSAGE_UNDAMAGED = "Undamaged";
     private static readonly string MESSAGE_UNHARVESTABLE = "Unharvestable";
+    private static readonly string MESSAGE_DISMANTLEABLE = "Can't be dismantled";
     private static readonly string MESSAGE_OBSTRUCTED = "Obstructed";
     private static readonly string MESSAGE_CANT_REACH = "Out of reach";
     private static readonly string MESSAGE_INSUFFICENT_SKILL = "Insufficent {0} skill, {1} required";
@@ -133,7 +134,7 @@ public class Mob : Entity
             List<Tool> tools_used = new List<Tool>();
             float tool_efficency = Get_Tool_Efficency(dismantling.Target.Tools_Required_To_Dismantle, out tools_used);
             string verb = dismantling.Target.Dismantle_Verb.Present;
-            if (!dismantling.Target.Deal_Damage(delta_time * Dismantling_Speed * tool_efficency, true)) {
+            if (!dismantling.Target.Deal_Damage(delta_time * Dismantling_Speed * dismantling.Target.Dismantle_Speed * tool_efficency, true)) {
                 dismantling.Text = string.Format(PROGRESS_TEXT, string.Format("{0} {1}", dismantling.Target.Dismantle_Verb.Present, dismantling.Target.Name), Helper.Float_To_String(100.0f * (1.0f - dismantling.Target.Relative_HP), 0));
             } else {
                 FloatingMessageManager.Instance.Show(string.Format("{0} finished", verb));
@@ -304,6 +305,10 @@ public class Mob : Entity
             message = MESSAGE_INDESTRUCTIBLE;
             return false;
         }
+        if (!block.Can_Be_Dismantled) {
+            message = MESSAGE_DISMANTLEABLE;
+            return false;
+        }
         if (!ignore_reach_and_current_actions && !Can_Work(out message)) {
             return false;
         }
@@ -428,6 +433,10 @@ public class Mob : Entity
         message = null;
         if (!Can_Harvest(block, out message)) {
             return false;
+        }
+        if (block.Instant_Harvest) {
+            block.Harvest(float.MaxValue, Inventory);
+            return true;
         }
         actions.Add(new ActionData(block.Harvest_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Harvest_Verb.Present, block.Name),
             Helper.Float_To_String(100.0f * block.Harvest_Progress_Relative, 0)), ActionType.Harvest, true, block));

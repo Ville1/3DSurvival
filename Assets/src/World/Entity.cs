@@ -8,8 +8,7 @@ public class Entity : MapObject {
     public long Id { get; private set; }
     public Inventory Inventory { get; protected set; }
 
-    public Entity(Vector3 position, Entity prototype, GameObject container) : base(prototype.Name, position, container, prototype.Prefab_Name, prototype.Material, prototype.Material_Type,
-        prototype.Model_Name, true)
+    public Entity(Vector3 position, Entity prototype, GameObject container) : base(prototype.Name, position, container, new PrototypeData(prototype.Prefab_Name, prototype.Material, prototype.Material_Type), true)
     {
         Id = current_id;
         current_id++;

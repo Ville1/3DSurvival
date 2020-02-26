@@ -15,6 +15,7 @@ public class Map {
     public GameObject Block_Container { get; private set; }
     public bool Generating { get; private set; }
     public int Rendering_Distance { get; private set; }
+    public bool Limited_Generation { get; private set; }
 
     private GameObject game_object;
     private List<Block> blocks;
@@ -73,7 +74,7 @@ public class Map {
         }
     }
 
-    public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z, int initial_chunk_size_x, int initial_chunk_size_z)
+    public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z, int initial_chunk_size_x, int initial_chunk_size_z, bool limited_generation)
     {
         Delete();
         chunk_index_x = 0;
@@ -84,6 +85,7 @@ public class Map {
         Chunk_Size_Z = chunk_size_z;
         Initial_Chunk_Size_X = initial_chunk_size_x;
         Initial_Chunk_Size_Z = initial_chunk_size_z;
+        Limited_Generation = limited_generation;
 
         Generating = true;
         ProgressBarManager.Instance.Active = true;
@@ -181,7 +183,8 @@ public class Map {
         Generating = false;
         CameraManager.Instance.Reset();
         ProgressBarManager.Instance.Active = false;
-        
+        PlayerGUIManager.Instance.Active = true;
+
         /*foreach(Chunk c in chunks) {
             Block b = Get_Block_At(new Coordinates((int)c.Center.x, Size_Y - 1, (int)c.Center.z));
             Mob mob = new Mob(b.Position, Mob.Dummy_Prototype, Entity_Container);
@@ -197,6 +200,9 @@ public class Map {
 
     private void Generate_Chunks()
     {
+        if (Limited_Generation) {
+            return;
+        }
         int player_x = (int)Player.Current.Position.x / Chunk.SIZE_X;
         int player_z = (int)Player.Current.Position.z / Chunk.SIZE_Z;
         for (int x = player_x - (Chunk_Size_X / 2); x < player_x + (Chunk_Size_X / 2); x++) {
