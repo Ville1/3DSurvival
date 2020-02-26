@@ -23,13 +23,13 @@ public class BlockPrototypes {
         prototypes.Add(new Block("Rock", "rock", "rock", null, false, false, false, 100, "rock", SpriteManager.SpriteType.Block, 1.0f, 1.0f, new Dictionary<string, int>() { { "stone", 1 } }, null,
             new Dictionary<Skill.SkillId, int>() { { Skill.SkillId.Mining, 1 } }, null, mine_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Pickaxe, 1 } }, null, null, -1.0f, null, null, null, null, null));
 
-        prototypes.Add(new Block("Dirt", "dirt", "dirt", null, false, false, false, 50, "dirt", SpriteManager.SpriteType.Block, 1.0f, 1.0f, new Dictionary<string, int>() { { "dirt", 1 } }, null,
+        prototypes.Add(new Block("Dirt", "dirt", "dirt", null, false, false, false, 50, "dirt", SpriteManager.SpriteType.Block, 1.0f, 100.0f, new Dictionary<string, int>() { { "dirt", 1 } }, null,
             null, null, dig_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Shovel, 1 } }, null, null, -1.0f, null, null, null, null, null));
 
-        prototypes.Add(new Block("Grass", "grass", "grass", null, false, false, false, 50, "grass", SpriteManager.SpriteType.Block, 1.0f, 1.0f, new Dictionary<string, int>() { { "dirt", 1 } }, null,
+        prototypes.Add(new Block("Grass", "grass", "grass", null, false, false, false, 50, "grass", SpriteManager.SpriteType.Block, 1.0f, 100.0f, new Dictionary<string, int>() { { "dirt", 1 } }, null,
             null, null, dig_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Shovel, 1 } }, null, null, -1.0f, null, null, null, null, null));
 
-        prototypes.Add(new Block("Tall grass", "tall_grass", null, "grass", true, true, false, 1, "placeholder", SpriteManager.SpriteType.UI, -1.0f, 1.0f, null, null, null, null, dismantle_verb, null, null, null,
+        prototypes.Add(new Block("Tall grass", "tall_grass", null, "grass", true, true, false, 1, "placeholder", SpriteManager.SpriteType.UI, -1.0f, 100.0f, null, null, null, null, dismantle_verb, null, null, null,
             999.0f, null, new Dictionary<string, int>() { { "plant_fiber", 1 } }, null, null, harvest_verb));
     }
 

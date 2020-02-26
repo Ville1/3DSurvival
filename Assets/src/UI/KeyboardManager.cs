@@ -98,6 +98,9 @@ public class KeyboardManager : MonoBehaviour
                 if(Input.GetButtonDown("Crafting menu")) {
                     CraftingMenuManager.Instance.Toggle();
                 }
+                if (Input.GetButtonDown("Interact") && InspectorManager.Instance.Active) {
+                    InspectorManager.Instance.Do_Default_Action();
+                }
             }
         } else {
             MasterUIManager.Instance.Read_Keyboard_Input();

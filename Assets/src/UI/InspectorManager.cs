@@ -28,6 +28,7 @@ public class InspectorManager : MonoBehaviour
     public Text Item_Pile_Row_5_Text;
 
     private MapObject target;
+    private string default_action;
 
     /// <summary>
     /// Initializiation
@@ -39,6 +40,8 @@ public class InspectorManager : MonoBehaviour
             return;
         }
         Instance = this;
+        target = null;
+        default_action = null;
         Active = false;
     }
 
@@ -64,19 +67,16 @@ public class InspectorManager : MonoBehaviour
             Dictionary<string, string> actions = new Dictionary<string, string>();
             List<string> possible_actions = new List<string>();
             string s = null;
+            default_action = null;
             if (!block.Indestructible) {
                 if (block.Can_Be_Dismantled) {
                     string dismantle_button = KeyboardManager.Instance.Get_Key_Bind("Dismantle block");
                     actions.Add(dismantle_button, block.Dismantle_Verb.Base);
                     if (Player.Current.Can_Dismantle(block, out s, true)) {
                         possible_actions.Add(dismantle_button);
-                    }
-                }
-                if (block.Can_Be_Repaired) {
-                    string repair_button = KeyboardManager.Instance.Get_Key_Bind("Repair block");
-                    actions.Add(repair_button, "Repair");
-                    if (Player.Current.Can_Repair(block, out s, true)) {
-                        possible_actions.Add(repair_button);
+                        if(default_action == null) {
+                            default_action = dismantle_button;
+                        }
                     }
                 }
                 if (block.Harvestable) {
@@ -84,6 +84,19 @@ public class InspectorManager : MonoBehaviour
                     actions.Add(harvest_button, block.Harvest_Verb.Base);
                     if (Player.Current.Can_Harvest(block, out s, true)) {
                         possible_actions.Add(harvest_button);
+                        if (default_action == null) {
+                            default_action = harvest_button;
+                        }
+                    }
+                }
+                if (block.Can_Be_Repaired) {
+                    string repair_button = KeyboardManager.Instance.Get_Key_Bind("Repair block");
+                    actions.Add(repair_button, "Repair");
+                    if (Player.Current.Can_Repair(block, out s, true)) {
+                        possible_actions.Add(repair_button);
+                        if (default_action == null) {
+                            default_action = repair_button;
+                        }
                     }
                 }
             }
@@ -93,7 +106,13 @@ public class InspectorManager : MonoBehaviour
                     if (!possible_actions.Contains(pair.Key)) {
                         builder.Append("<i>");
                     }
+                    if(default_action == pair.Key) {
+                        builder.Append("[");
+                    }
                     builder.Append(pair.Key).Append(" = ").Append(pair.Value);
+                    if (default_action == pair.Key) {
+                        builder.Append("]");
+                    }
                     if (!possible_actions.Contains(pair.Key)) {
                         builder.Append("</i>");
                     }
@@ -182,6 +201,24 @@ public class InspectorManager : MonoBehaviour
     {
         get {
             return target == null || !Active || !(target is Block) ? null : target as Block;
+        }
+    }
+
+    public void Do_Default_Action()
+    {
+        if (string.IsNullOrEmpty(default_action) || Block == null) {
+            return;
+        }
+        string message = null;
+        if(default_action == KeyboardManager.Instance.Get_Key_Bind("Dismantle block")) {
+            Player.Current.Dismantle_Block(Block, out message);
+        } else if (default_action == KeyboardManager.Instance.Get_Key_Bind("Harvest block")) {
+            Player.Current.Harvest_Block(Block, out message);
+        } else if (default_action == KeyboardManager.Instance.Get_Key_Bind("Repair block")) {
+            Player.Current.Repair_Block(Block, out message);
+        }
+        if (!string.IsNullOrEmpty(message)) {
+            MessageManager.Instance.Show_Message(message);
         }
     }
 }
