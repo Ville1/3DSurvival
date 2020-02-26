@@ -29,8 +29,11 @@ public class Map {
     private Block player_spawn;
     private bool active;
 
-    private int chunk_index_x = 0;
-    private int chunk_index_z = 0;
+    private int chunk_index_x;
+    private int chunk_index_z;
+    private int generation_loop;
+    private int second_loop_count;
+    private int third_loop_count;
 
     private Map()
     {
@@ -47,6 +50,11 @@ public class Map {
         blocks_to_be_removed = new List<Block>();
         active = false;
         Rendering_Distance = 30;
+        chunk_index_x = 0;
+        chunk_index_z = 0;
+        generation_loop = 0;
+        second_loop_count = 0;
+        third_loop_count = 0;
     }
 
     public static Map Instance
@@ -79,7 +87,10 @@ public class Map {
         Delete();
         chunk_index_x = 0;
         chunk_index_z = 0;
-        
+        generation_loop = 0;
+        second_loop_count = 0;
+        third_loop_count = 0;
+
         Size_Y = size_y;
         Chunk_Size_X = chunk_size_x;
         Chunk_Size_Z = chunk_size_z;
@@ -95,7 +106,13 @@ public class Map {
     public void Update(float delta_time)
     {
         if (Generating) {
-            Generate();
+            if(generation_loop == 0) {
+                Generate_First_Loop();
+            } else if (generation_loop == 1) {
+                Generate_Second_Loop();
+            } else {
+                Generate_Third_Loop();
+            }
             return;
         }
         if (!active) {
@@ -152,10 +169,19 @@ public class Map {
         Load_Chunks();
     }
 
-    private void Generate()
+    private void Generate_First_Loop()
     {
         Chunk chunk = new Chunk(chunk_index_x, chunk_index_z);
-        chunk.Generate(Size_Y);
+        float elevation_total = 0.0f;
+        float elevation_count = 0.0f;
+        foreach(Chunk c in chunks) {
+            if((c.X == chunk.X - 1 || c.X == chunk.X + 1) && (c.Z == chunk.Z - 1 || c.Z == chunk.Z + 1)) {
+                elevation_total += c.Average_Elevation;
+                elevation_total += 1.0f;
+            }
+        }
+        int base_elevation = elevation_count != 0 ? Mathf.RoundToInt(elevation_total / elevation_count) : Size_Y / 2;
+        chunk.Generate_First_Loop(Size_Y, base_elevation + RNG.Instance.Next(-1, 1));
         foreach(Block block in chunk.Blocks) {
             blocks.Add(block);
         }
@@ -169,6 +195,48 @@ public class Map {
         }
 
         if(chunks.Count == Initial_Chunk_Size_X * Initial_Chunk_Size_Z) {
+            chunk_index_x = 0;
+            chunk_index_z = 0;
+            generation_loop = 1;
+        } else {
+            Update_Progress();
+        }
+    }
+
+    private void Generate_Second_Loop()
+    {
+        Chunk chunk = chunks.First(x => x.X == chunk_index_x && x.Z == chunk_index_z);
+        chunk.Generate_Second_Loop();
+
+        second_loop_count++;
+        chunk_index_x++;
+        if (chunk_index_x == Initial_Chunk_Size_X) {
+            chunk_index_x = 0;
+            chunk_index_z++;
+        }
+
+        if (second_loop_count == Initial_Chunk_Size_X * Initial_Chunk_Size_Z) {
+            chunk_index_x = 0;
+            chunk_index_z = 0;
+            generation_loop = 2;
+        } else {
+            Update_Progress();
+        }
+    }
+
+    private void Generate_Third_Loop()
+    {
+        Chunk chunk = chunks.First(x => x.X == chunk_index_x && x.Z == chunk_index_z);
+        chunk.Generate_Third_Loop();
+
+        third_loop_count++;
+        chunk_index_x++;
+        if (chunk_index_x == Initial_Chunk_Size_X) {
+            chunk_index_x = 0;
+            chunk_index_z++;
+        }
+
+        if (third_loop_count == Initial_Chunk_Size_X * Initial_Chunk_Size_Z) {
             Finish_Generation();
         } else {
             Update_Progress();
@@ -201,8 +269,24 @@ public class Map {
 
     private void Update_Progress()
     {
-        float progress = (float)chunks.Count / ((float)Initial_Chunk_Size_X * (float)Initial_Chunk_Size_Z);
-        ProgressBarManager.Instance.Show(string.Format("Generating map... {0}%", Helper.Float_To_String(100.0f * progress, 1)), progress);
+        float loop_1_current = chunks.Count;
+        float loop_2_current = second_loop_count;
+        float loop_3_current = third_loop_count;
+        float chunk_count = (float)Initial_Chunk_Size_X * (float)Initial_Chunk_Size_Z;
+        float progress = (loop_1_current + loop_2_current + loop_3_current) / (chunk_count * 3.0f);
+        string message = "Generating map";
+        switch (generation_loop) {
+            case 0:
+                message = "Generating terrain";
+                break;
+            case 1:
+                message = "Fine tuning terrain";
+                break;
+            case 2:
+                message = "Fine tuning details";
+                break;
+        }
+        ProgressBarManager.Instance.Show(string.Format("{0}... {1}%", message, Helper.Float_To_String(100.0f * progress, 1)), progress);
     }
 
     private void Generate_Chunks()
@@ -219,7 +303,17 @@ public class Map {
                     continue;
                 }
                 chunk = new Chunk(x, z);
-                chunk.Generate(Size_Y);
+                //TODO: Duplicate code
+                float elevation_total = 0.0f;
+                float elevation_count = 0.0f;
+                foreach (Chunk c in chunks) {
+                    if ((c.X == chunk.X - 1 || c.X == chunk.X + 1) && (c.Z == chunk.Z - 1 || c.Z == chunk.Z + 1)) {
+                        elevation_total += c.Average_Elevation;
+                        elevation_total += 1.0f;
+                    }
+                }
+                int base_elevation = elevation_count != 0 ? Mathf.RoundToInt(elevation_total / elevation_count) : Size_Y / 2;
+                chunk.Generate_First_Loop(Size_Y, base_elevation + RNG.Instance.Next(-1, 1));
                 chunks.Add(chunk);
             }
         }
@@ -295,10 +389,39 @@ public class Map {
         return blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
     }
 
+    public List<Block> Get_Blocks_In_Chuck_And_Adjacent_Chunks(Chunk chunk)
+    {
+        List<Chunk> list = chunks.Where(x =>
+            (x.X == chunk.X && x.Z == chunk.Z) ||
+            (x.X + 1 == chunk.X && x.Z == chunk.Z) ||
+            (x.X - 1 == chunk.X && x.Z == chunk.Z) ||
+            (x.X == chunk.X && x.Z + 1 == chunk.Z) ||
+            (x.X == chunk.X && x.Z - 1 == chunk.Z)
+        ).ToList();
+        //TODO: linq
+        List<Block> b = new List<Block>();
+        foreach(Chunk c in list) {
+            b.AddRange(c.Blocks);
+        }
+        return b;
+    }
+
     //TODO: this
     public Block Find_Closest_Passable_Block(Coordinates coordinates)
     {
         return blocks.Where(x => x.Coordinates.X == coordinates.X && x.Coordinates.Z == coordinates.Z && x.Passable).OrderBy(x => x.Coordinates.Y).FirstOrDefault();
+    }
+
+    public static List<Block> Get_Adjacent(Block block, List<Block> blocks)
+    {
+        return blocks.Where(x =>
+            (x.Coordinates.X == block.Coordinates.X - 1 && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X + 1 && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y - 1 == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y + 1 == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z - 1 == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z + 1 == block.Coordinates.Z)
+        ).ToList();
     }
 
     public bool Active

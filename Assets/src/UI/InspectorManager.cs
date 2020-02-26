@@ -69,16 +69,6 @@ public class InspectorManager : MonoBehaviour
             string s = null;
             default_action = null;
             if (!block.Indestructible) {
-                if (block.Can_Be_Dismantled) {
-                    string dismantle_button = KeyboardManager.Instance.Get_Key_Bind("Dismantle block");
-                    actions.Add(dismantle_button, block.Dismantle_Verb.Base);
-                    if (Player.Current.Can_Dismantle(block, out s, true)) {
-                        possible_actions.Add(dismantle_button);
-                        if(default_action == null) {
-                            default_action = dismantle_button;
-                        }
-                    }
-                }
                 if (block.Harvestable) {
                     string harvest_button = KeyboardManager.Instance.Get_Key_Bind("Harvest block");
                     actions.Add(harvest_button, block.Harvest_Verb.Base);
@@ -86,6 +76,16 @@ public class InspectorManager : MonoBehaviour
                         possible_actions.Add(harvest_button);
                         if (default_action == null) {
                             default_action = harvest_button;
+                        }
+                    }
+                }
+                if (block.Can_Be_Dismantled) {
+                    string dismantle_button = KeyboardManager.Instance.Get_Key_Bind("Dismantle block");
+                    actions.Add(dismantle_button, block.Dismantle_Verb.Base);
+                    if (Player.Current.Can_Dismantle(block, out s, true)) {
+                        possible_actions.Add(dismantle_button);
+                        if(default_action == null) {
+                            default_action = dismantle_button;
                         }
                     }
                 }

@@ -48,4 +48,9 @@ public class MaterialManager {
         }
         return null;
     }
+
+    public bool Has(string material_name, MaterialType type)
+    {
+        return materials.ContainsKey(prefixes[type] + "_" + material_name);
+    }
 }

@@ -96,6 +96,24 @@ public class MapObject {
         MeshRenderer.material = MaterialManager.Instance.Get(Material, Material_Type.Value);
     }
 
+    protected void Change_Prefab()
+    {
+        if (Use_3DModel) {
+            return;
+        }
+        Vector3 position = GameObject.transform.position;
+        GameObject.Destroy(GameObject);
+
+        GameObject = GameObject.Instantiate(
+            PrefabManager.Instance.Get(Prefab_Name),
+            position,
+            Quaternion.identity,
+            Parent.transform
+        );
+        GameObject.name = Name;
+        GameObject.SetActive(true);
+    }
+
     protected void Update_Model()
     {
         if (!Use_3DModel) {

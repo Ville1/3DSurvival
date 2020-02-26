@@ -5,6 +5,7 @@ public class Block : MapObject {
     public static readonly string GAME_OBJECT_NAME_PREFIX = "Block_";
     public static readonly string TRANSPARENT_MATERIAL_PREFIX = "transparent_";
     public static readonly string PREFAB_NAME = "Block";
+    public static readonly string SLOPE_PREFAB_NAME = "Slope";
     public static readonly float UPDATE_INTERVAL = 30.0f;
 
     public delegate void UpdateDelegate(float delta_time, Block block);
@@ -56,6 +57,7 @@ public class Block : MapObject {
     public Dictionary<string, object> Persistent_Data { get; private set; }
     public UpdateDelegate Update_Action { get; private set; }
     public CreateDelegate Create_Action { get; private set; }
+    public bool Supports_Top { get; private set; }
 
     private GameObject crack_cube;
     private float update_cooldown;
@@ -82,12 +84,13 @@ public class Block : MapObject {
         }
     }
 
+    //TODO: internal_name.Contains("_slope")
     public Block(string name, string internal_name, string material, string model_name, bool passable, bool can_be_built_over, bool inactive, int hp, string ui_sprite, SpriteManager.SpriteType ui_sprite_type, float dismantle_speed,
         float build_speed, Dictionary<string, int> dismantle_drops, Dictionary<string, int> building_materials, Dictionary<Skill.SkillId, int> dismantle_skills, Dictionary<Skill.SkillId, int> build_skills,
         Verb dismantle_verb, Dictionary<Tool.ToolType, int> tools_required_to_dismantle, Dictionary<Tool.ToolType, int> tools_required_to_build, BuildMenuManager.TabType? build_menu_tab, float harvest_speed,
         string after_harvest_prototype, Dictionary<string, int> harvest_drops, Dictionary<Skill.SkillId, int> skills_required_to_harvest, Dictionary<Tool.ToolType, int> tools_required_to_harvest, Verb harvest_verb,
-        CreateDelegate create_action, UpdateDelegate update_action) : 
-        base(name, string.IsNullOrEmpty(model_name) ? PREFAB_NAME : null, string.IsNullOrEmpty(model_name) ? material : null, MaterialManager.MaterialType.Block, model_name)
+        CreateDelegate create_action, UpdateDelegate update_action, bool supports_top) : 
+        base(name, string.IsNullOrEmpty(model_name) ? (internal_name.Contains("_slope") ? SLOPE_PREFAB_NAME : PREFAB_NAME) : null, string.IsNullOrEmpty(model_name) ? material : null, MaterialManager.MaterialType.Block, model_name)
     {
         Id = -1;
         Name = name;
@@ -126,6 +129,7 @@ public class Block : MapObject {
         Update_Action = update_action;
         update_cooldown = -1.0f;
         Create_Action = create_action;
+        Supports_Top = supports_top;
     }
 
     public Coordinates Coordinates
@@ -151,9 +155,11 @@ public class Block : MapObject {
 
     public void Change_To(Block prototype, bool update_material = true, float? hp = null, bool is_preview = false)
     {
+        bool changed_prefab = Prefab_Name != prototype.Prefab_Name;
         Name = prototype.Name;
         Internal_Name = prototype.Internal_Name;
         Material = prototype.Material;
+        Prefab_Name = prototype.Prefab_Name;
         Model_Name = prototype.Model_Name;
         Passable = prototype.Passable;
         Can_Be_Built_Over = prototype.Can_Be_Built_Over;
@@ -189,12 +195,21 @@ public class Block : MapObject {
         update_cooldown = Update_Action != null ? (RNG.Instance.Next(0, 100) * 0.01f) * UPDATE_INTERVAL : 0.0f;
         Persistent_Data = Persistent_Data != null ? Persistent_Data : new Dictionary<string, object>();
         Create_Action = prototype.Create_Action;
+        Supports_Top = prototype.Supports_Top;
 
-        GameObject.SetActive(!Inactive_GameObject);
+        if (changed_prefab) {
+            Change_Prefab();
+        }
         if (update_material) {
             Update_Material();
             Update_Model();
         }
+        GameObject.SetActive(!Inactive_GameObject);
+    }
+
+    public void Rotate(float degrees_x, float degrees_y, float degrees_z)
+    {
+        GameObject.transform.Rotate(new Vector3(degrees_x, degrees_y, degrees_z));
     }
 
     private new void Update_Material()
@@ -212,11 +227,22 @@ public class Block : MapObject {
                 renderer.material = MaterialManager.Instance.Get(material_name, MaterialManager.MaterialType.Block);
             }
         }
-        if((Preview || !Completed) && !MeshRenderer.material.name.StartsWith(TRANSPARENT_MATERIAL_PREFIX)) {
+        if((Preview || !Completed) && !MeshRenderer.material.name.StartsWith(TRANSPARENT_MATERIAL_PREFIX) && MaterialManager.Instance.Has(TRANSPARENT_MATERIAL_PREFIX + Material, MaterialManager.MaterialType.Block)) {
             MeshRenderer.material = MaterialManager.Instance.Get(TRANSPARENT_MATERIAL_PREFIX + Material, MaterialManager.MaterialType.Block);
         } else if (!Preview && Completed && MeshRenderer.material.name.StartsWith(TRANSPARENT_MATERIAL_PREFIX)) {
             MeshRenderer.material = MaterialManager.Instance.Get(Material, MaterialManager.MaterialType.Block);
         }
+    }
+
+    private new void Change_Prefab()
+    {
+        base.Change_Prefab();
+        foreach (Transform transform in GameObject.transform) {
+            if (transform.name == "CrackCube") {
+                crack_cube = transform.gameObject;
+            }
+        }
+        GameObject.name = string.Format("{0}#{1}_{2}", GAME_OBJECT_NAME_PREFIX, Id, Coordinates.Parse_Text(true, false));
     }
 
     private new void Update_Model()

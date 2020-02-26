@@ -6,6 +6,7 @@ public class PrefabManager : MonoBehaviour
     public static PrefabManager Instance { get; private set; }
 
     public GameObject Block;
+    public GameObject Slope;
     public GameObject Player;
     public GameObject Item_Pile;
     public GameObject Dummy;
