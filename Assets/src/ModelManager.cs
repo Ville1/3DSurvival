@@ -2,7 +2,7 @@
 using UnityEngine;
 
 public class ModelManager {
-    private readonly string[] MODELS = new string[1] { "grass" };
+    private readonly string[] MODELS = new string[4] { "grass", "short_grass", "medium_grass", "tall_grass" };
 
     private Dictionary<string, GameObject> models;
     

@@ -5,6 +5,10 @@ public class Block : MapObject {
     public static readonly string GAME_OBJECT_NAME_PREFIX = "Block_";
     public static readonly string TRANSPARENT_MATERIAL_PREFIX = "transparent_";
     public static readonly string PREFAB_NAME = "Block";
+    public static readonly float UPDATE_INTERVAL = 30.0f;
+
+    public delegate void UpdateDelegate(float delta_time, Block block);
+    public delegate void CreateDelegate(Block block);
 
     private static long current_id = 0;
     private static readonly string[] CRACK_MATERIALS = new string[3] { "cracks_1", "cracks_2", "cracks_3" };
@@ -48,9 +52,13 @@ public class Block : MapObject {
     public bool Preview { get; private set; }
     public bool Can_Be_Repaired { get { return Relative_HP != 1.0f || Harvest_Progress != 0.0f; } }
     public Chunk Chunk { get; set; }
-    public bool Use_3DModel { get { return !string.IsNullOrEmpty(Model_Name); } }
+    public Dictionary<string, object> Data { get; private set; }
+    public Dictionary<string, object> Persistent_Data { get; private set; }
+    public UpdateDelegate Update_Action { get; private set; }
+    public CreateDelegate Create_Action { get; private set; }
 
     private GameObject crack_cube;
+    private float update_cooldown;
 
     public Block(Coordinates position, Block prototype, GameObject container, float? hp = null, bool is_preview = false) : base(prototype.Name, position.Vector, container, prototype.Prototype_Data, !prototype.Inactive_GameObject)
     {
@@ -69,12 +77,16 @@ public class Block : MapObject {
         if (is_preview) {
             GameObject.GetComponentInChildren<BoxCollider>().enabled = false;
         }
+        if(Create_Action != null) {
+            Create_Action(this);
+        }
     }
 
     public Block(string name, string internal_name, string material, string model_name, bool passable, bool can_be_built_over, bool inactive, int hp, string ui_sprite, SpriteManager.SpriteType ui_sprite_type, float dismantle_speed,
         float build_speed, Dictionary<string, int> dismantle_drops, Dictionary<string, int> building_materials, Dictionary<Skill.SkillId, int> dismantle_skills, Dictionary<Skill.SkillId, int> build_skills,
         Verb dismantle_verb, Dictionary<Tool.ToolType, int> tools_required_to_dismantle, Dictionary<Tool.ToolType, int> tools_required_to_build, BuildMenuManager.TabType? build_menu_tab, float harvest_speed,
-        string after_harvest_prototype, Dictionary<string, int> harvest_drops, Dictionary<Skill.SkillId, int> skills_required_to_harvest, Dictionary<Tool.ToolType, int> tools_required_to_harvest, Verb harvest_verb) : 
+        string after_harvest_prototype, Dictionary<string, int> harvest_drops, Dictionary<Skill.SkillId, int> skills_required_to_harvest, Dictionary<Tool.ToolType, int> tools_required_to_harvest, Verb harvest_verb,
+        CreateDelegate create_action, UpdateDelegate update_action) : 
         base(name, string.IsNullOrEmpty(model_name) ? PREFAB_NAME : null, string.IsNullOrEmpty(model_name) ? material : null, MaterialManager.MaterialType.Block, model_name)
     {
         Id = -1;
@@ -109,6 +121,11 @@ public class Block : MapObject {
         Skills_Required_To_Harvest = skills_required_to_harvest != null ? Helper.Clone_Dictionary(skills_required_to_harvest) : new Dictionary<Skill.SkillId, int>();
         Tools_Required_To_Harvest = tools_required_to_harvest != null ? Helper.Clone_Dictionary(tools_required_to_harvest) : new Dictionary<Tool.ToolType, int>();
         Harvest_Verb = new Verb(harvest_verb);
+        Data = new Dictionary<string, object>();
+        Persistent_Data = new Dictionary<string, object>();
+        Update_Action = update_action;
+        update_cooldown = -1.0f;
+        Create_Action = create_action;
     }
 
     public Coordinates Coordinates
@@ -134,9 +151,6 @@ public class Block : MapObject {
 
     public void Change_To(Block prototype, bool update_material = true, float? hp = null, bool is_preview = false)
     {
-        if(prototype.Name == "Tall grass") {
-            var a = 0;
-        }
         Name = prototype.Name;
         Internal_Name = prototype.Internal_Name;
         Material = prototype.Material;
@@ -170,10 +184,16 @@ public class Block : MapObject {
         Skills_Required_To_Harvest = Helper.Clone_Dictionary(prototype.Skills_Required_To_Harvest);
         Tools_Required_To_Harvest = Helper.Clone_Dictionary(prototype.Tools_Required_To_Harvest);
         Harvest_Verb = new Verb(prototype.Harvest_Verb);
+        Data = new Dictionary<string, object>();
+        Update_Action = prototype.Update_Action;
+        update_cooldown = Update_Action != null ? (RNG.Instance.Next(0, 100) * 0.01f) * UPDATE_INTERVAL : 0.0f;
+        Persistent_Data = Persistent_Data != null ? Persistent_Data : new Dictionary<string, object>();
+        Create_Action = prototype.Create_Action;
 
         GameObject.SetActive(!Inactive_GameObject);
         if (update_material) {
             Update_Material();
+            Update_Model();
         }
     }
 
@@ -197,6 +217,15 @@ public class Block : MapObject {
         } else if (!Preview && Completed && MeshRenderer.material.name.StartsWith(TRANSPARENT_MATERIAL_PREFIX)) {
             MeshRenderer.material = MaterialManager.Instance.Get(Material, MaterialManager.MaterialType.Block);
         }
+    }
+
+    private new void Update_Model()
+    {
+        base.Update_Model();
+        if (!Use_3DModel) {
+            return;
+        }
+        GameObject.name = string.Format("{0}#{1}_{2}", GAME_OBJECT_NAME_PREFIX, Id, Coordinates.Parse_Text(true, false));
     }
 
     public bool Deal_Damage(float amount, bool dismantle)
@@ -270,6 +299,20 @@ public class Block : MapObject {
             }
         }
         return harvested;
+    }
+
+    public void Update(float delta_time)
+    {
+        if(Update_Action == null || !Active) {
+            return;
+        }
+        update_cooldown -= delta_time;
+        if(update_cooldown > 0.0f) {
+            return;
+        }
+        update_cooldown += UPDATE_INTERVAL;
+        delta_time = update_cooldown;
+        Update_Action(delta_time, this);
     }
 
     public new void Delete()

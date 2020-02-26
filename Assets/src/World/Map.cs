@@ -115,6 +115,13 @@ public class Map {
             }
         }
 
+        foreach(Chunk chunck in active_chunks) {
+            foreach(Block block in chunck.Blocks) {
+                block.Update(delta_time + stopwatch.ElapsedMilliseconds * 0.001f);
+            }
+        }
+
+
         foreach(Entity entity in entities_to_be_added) {
             entities.Add(entity);
         }
@@ -221,13 +228,18 @@ public class Map {
     private void Load_Chunks()
     {
         //TODO: Optimize
-        active_chunks.Clear();
         foreach(Chunk chunk in chunks) {
             bool render = Vector3.Distance(chunk.Center, new Vector3(Player.Current.GameObject.transform.position.x, 0.0f, Player.Current.GameObject.transform.position.z)) <= Rendering_Distance;
             if(chunk.Active && !render) {
                 chunk.Active = false;
+                if (active_chunks.Contains(chunk)) {
+                    active_chunks.Remove(chunk);
+                }
             } else if(!chunk.Active && render) {
                 chunk.Active = true;
+                if (!active_chunks.Contains(chunk)) {
+                    active_chunks.Add(chunk);
+                }
             }
         }
     }

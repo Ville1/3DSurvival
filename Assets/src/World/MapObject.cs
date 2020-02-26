@@ -8,6 +8,8 @@ public class MapObject {
     public string Material { get; protected set; }
     public MaterialManager.MaterialType? Material_Type { get; protected set; }
     public string Model_Name { get; protected set; }
+    public bool Has_Collision { get; private set; }
+    public bool Use_3DModel { get { return !string.IsNullOrEmpty(Model_Name); } }
 
     public MapObject(string name, Vector3 position, GameObject parent, PrototypeData prototype, bool active)
     {
@@ -17,6 +19,7 @@ public class MapObject {
         Material = prototype.Use_Prefab ? prototype.Material : null;
         Material_Type = prototype.Use_Prefab ? prototype.Material_Type : null;
         Model_Name = prototype.Use_Prefab ? null : prototype.Model_Name;
+        Has_Collision = prototype.Use_Prefab ? false : prototype.Has_Collision;
 
         GameObject = GameObject.Instantiate(
             prototype.Use_Prefab ? PrefabManager.Instance.Get(prototype.Prefab_Name) : ModelManager.Instance.Get(prototype.Model_Name),
@@ -27,7 +30,7 @@ public class MapObject {
         GameObject.name = Name;
         if (!prototype.Use_Prefab) {
             BoxCollider collider = GameObject.AddComponent<BoxCollider>();
-            collider.isTrigger = !prototype.Has_Collision;
+            collider.isTrigger = !Has_Collision;
         }
 
         GameObject.SetActive(active);
@@ -91,6 +94,26 @@ public class MapObject {
             return;
         }
         MeshRenderer.material = MaterialManager.Instance.Get(Material, Material_Type.Value);
+    }
+
+    protected void Update_Model()
+    {
+        if (!Use_3DModel) {
+            return;
+        }
+        Vector3 position = GameObject.transform.position;
+        GameObject.Destroy(GameObject);
+
+        GameObject = GameObject.Instantiate(
+            ModelManager.Instance.Get(Model_Name),
+            position,
+            Quaternion.identity,
+            Parent.transform
+        );
+        GameObject.name = Name;
+        BoxCollider collider = GameObject.AddComponent<BoxCollider>();
+        collider.isTrigger = !Has_Collision;
+        GameObject.SetActive(true);
     }
 
     public class PrototypeData

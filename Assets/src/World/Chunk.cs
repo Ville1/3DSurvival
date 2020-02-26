@@ -62,8 +62,15 @@ public class Chunk {
                         prototype = "dirt";
                     } else if (y == size_y / 2) {
                         prototype = "grass";
-                    } else if (y == size_y / 2 + 1 && RNG.Instance.Next(0, 6) == 0) {
-                        prototype = "tall_grass";
+                    } else if (y == size_y / 2 + 1 && RNG.Instance.Next(0, 9) == 0) {
+                        int rand = RNG.Instance.Next(0, 100);
+                        if(rand <= 35) {
+                            prototype = "tall_grass";
+                        } else if(rand > 25 && rand <= 85) {
+                            prototype = "medium_grass";
+                        } else {
+                            prototype = "short_grass";
+                        }
                     }
                     Block block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get(prototype), GameObject);
                     block.Chunk = this;

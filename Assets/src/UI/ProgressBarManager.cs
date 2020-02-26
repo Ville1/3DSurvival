@@ -35,7 +35,11 @@ public class ProgressBarManager : MonoBehaviour {
             return Panel.activeSelf;
         }
         set {
+            if(Panel.activeSelf == value) {
+                return;
+            }
             Panel.SetActive(value);
+            MenuManager.Instance.Interactable = !value;
         }
     }
 

@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
     public static MenuManager Instance { get; private set; }
+
+    public Button Menu_Button;
 
     /// <summary>
     /// Initializiation
@@ -27,5 +30,15 @@ public class MenuManager : MonoBehaviour
     public void Menu_On_Click()
     {
         MainMenuManager.Instance.Toggle();
+    }
+
+    public bool Interactable
+    {
+        get {
+            return Menu_Button.interactable;
+        }
+        set {
+            Menu_Button.interactable = value;
+        }
     }
 }
