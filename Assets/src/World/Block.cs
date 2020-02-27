@@ -198,10 +198,10 @@ public class Block : MapObject {
         Create_Action = prototype.Create_Action;
         Supports_Top = prototype.Supports_Top;
 
-        GameObject.SetActive(!Inactive_GameObject);
         if (changed_prefab) {
             Change_Prefab();
         }
+        GameObject.SetActive(!Inactive_GameObject);
         if (update_material) {
             Update_Material();
             Update_Model();

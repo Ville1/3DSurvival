@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class CraftingMenuManager : MonoBehaviour {
-    public enum TabType { Misc, Test1 }
+    public enum TabType { Refining, Tools }
     public static CraftingMenuManager Instance { get; private set; }
 
     public GameObject Main_Panel;
@@ -81,7 +81,7 @@ public class CraftingMenuManager : MonoBehaviour {
                 BuildMenuManager.Instance.Preview_Active = false;
                 InventoryGUIManager.Instance.Active = false;
                 Update_GUI();
-                Select_Tab(TabType.Misc);
+                Select_Tab(TabType.Refining);
             }
         }
     }

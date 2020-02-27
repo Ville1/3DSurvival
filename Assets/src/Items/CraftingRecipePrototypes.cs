@@ -10,7 +10,11 @@ public class CraftingRecipePrototypes {
     {
         prototypes = new List<CraftingRecipe>();
 
-        prototypes.Add(new CraftingRecipe("Test", "test", 2.0f, CraftingMenuManager.TabType.Misc, new Dictionary<string, int>() { { "stone", 2 } }, new Dictionary<string, int>() { { "wood", 1 } }, null, null, "placeholder", SpriteManager.SpriteType.UI));
+        prototypes.Add(new CraftingRecipe("Craft rope", "craft_rope", 2.5f, CraftingMenuManager.TabType.Refining, new Dictionary<string, int>() { { "plant_fiber", 2 } }, new Dictionary<string, int>() { { "rope", 1 } }, null, null, "placeholder", SpriteManager.SpriteType.UI));
+        prototypes.Add(new CraftingRecipe("Sharpen flint", "sharpen_flint", 2.0f, CraftingMenuManager.TabType.Refining, new Dictionary<string, int>() { { "stone", 1 }, { "flint", 1 } }, new Dictionary<string, int>() { { "stone", 1 }, { "sharp_flint", 1 } }, null, null, "placeholder", SpriteManager.SpriteType.UI));
+        
+        prototypes.Add(new CraftingRecipe("Craft primitive axe", "craft_primitive_axe", 6.0f, CraftingMenuManager.TabType.Tools, new Dictionary<string, int>() { { "sharp_flint", 1 }, { "stick", 1 }, { "rope", 1 } }, new Dictionary<string, int>() { { "flint_axe", 1 } }, null, null, "placeholder", SpriteManager.SpriteType.UI));
+        prototypes.Add(new CraftingRecipe("Craft primitive hammer", "craft_primitive_hammer", 5.0f, CraftingMenuManager.TabType.Tools, new Dictionary<string, int>() { { "stone", 1 }, { "stick", 1 }, { "rope", 1 } }, new Dictionary<string, int>() { { "stone_hammer", 1 } }, null, null, "placeholder", SpriteManager.SpriteType.UI));
     }
 
     public static CraftingRecipePrototypes Instance

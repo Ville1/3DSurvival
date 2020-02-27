@@ -1,5 +1,5 @@
 ﻿public class Tool : Item {
-    public enum ToolType { Pickaxe, Hammer, Shovel }
+    public enum ToolType { Pickaxe, Hammer, Shovel, Axe }
 
     public ToolType Type { get; private set; }
     public int Level { get; private set; }

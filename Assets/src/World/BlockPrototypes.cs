@@ -16,6 +16,7 @@ public class BlockPrototypes {
         Verb mine_verb = new Verb("Mine", "Mining");
         Verb dig_verb = new Verb("Dig", "Digging");
         Verb remove_verb = new Verb("Remove", "Removing");
+        Verb pickup_verb = new Verb("Pick up", "Picking up");
 
         Verb harvest_verb = new Verb("Harvest", "Harvesting");
 
@@ -30,7 +31,7 @@ public class BlockPrototypes {
         prototypes.Add(new Block("Grass", "grass", "grass", null, false, false, false, 50, "grass", SpriteManager.SpriteType.Block, 1.0f, 100.0f, new Dictionary<string, int>() { { "dirt", 1 } }, null,
             null, null, dig_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Shovel, 1 } }, null, null, -1.0f, null, null, null, null, null, null, null, true));
         prototypes.Add(new Block("Grass slope", "grass_slope", "grass", null, false, false, false, 25, "grass", SpriteManager.SpriteType.Block, 1.0f, 100.0f, new Dictionary<string, int>() { { "dirt", 1 } }, null,
-            null, null, dig_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Shovel, 1 } }, null, BuildMenuManager.TabType.Misc, -1.0f, null, null, null, null, null, null, null, false));
+            null, null, dig_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Shovel, 1 } }, null, null, -1.0f, null, null, null, null, null, null, null, false));
 
         prototypes.Add(new Block("Tall grass", "tall_grass", null, "tall_grass", true, true, false, 10, "placeholder", SpriteManager.SpriteType.UI, 1.0f, 100.0f, new Dictionary<string, int>() { { "plant_fiber", 3 } }, null, null, null, remove_verb, null, null, null,
             999.0f, "medium_grass", new Dictionary<string, int>() { { "plant_fiber", 1 } }, null, null, harvest_verb, delegate (Block block) { block.Persistent_Data.Add("original_lenght", "tall"); }, null, false));
@@ -76,6 +77,16 @@ public class BlockPrototypes {
 
         prototypes.Add(new Block("Short grass", "short_grass", null, "short_grass", true, true, false, 1, "placeholder", SpriteManager.SpriteType.UI, 1.0f, 100.0f, new Dictionary<string, int>() { { "plant_fiber", 1 } }, null, null, null, remove_verb, null, null, null,
             -1.0f, null, null, null, null, harvest_verb, delegate (Block block) { block.Persistent_Data.Add("original_lenght", "short"); }, short_grass_grow, false));
+
+        prototypes.Add(new Block("Stones", "stones", null, "stones", true, true, false, 10, "stone", SpriteManager.SpriteType.Item, -1.0f, 100.0f, new Dictionary<string, int>() { { "stone", 1 } }, null, null, null, dismantle_verb, null, null, null,
+            999.0f, null, new Dictionary<string, int>() { { "stone", 1 } }, null, null, pickup_verb, null, null, false));
+        prototypes.Add(new Block("Sticks", "sticks", null, "sticks", true, true, false, 10, "placeholder", SpriteManager.SpriteType.UI, -1.0f, 100.0f, new Dictionary<string, int>() { { "stick", 1 } }, null, null, null, dismantle_verb, null, null, null,
+            999.0f, null, new Dictionary<string, int>() { { "stick", 1 } }, null, null, pickup_verb, null, null, false));
+        prototypes.Add(new Block("Flint", "flint", null, "flint", true, true, false, 10, "placeholder", SpriteManager.SpriteType.UI, -1.0f, 100.0f, new Dictionary<string, int>() { { "flint", 1 } }, null, null, null, dismantle_verb, null, null, null,
+            999.0f, null, new Dictionary<string, int>() { { "flint", 1 } }, null, null, pickup_verb, null, null, false));
+
+        prototypes.Add(new Block("Stick wall", "stick_wall", "planks", null, false, false, false, 50, "placeholder", SpriteManager.SpriteType.UI, 10.0f, 100.0f, new Dictionary<string, int>() { { "stick", 1 }, { "rope", 1 } },
+            new Dictionary<string, int>() { { "stick", 3 }, { "rope", 2 } }, null, null, dismantle_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Hammer, 1 }, { Tool.ToolType.Axe, 1 } }, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Hammer, 1 } }, BuildMenuManager.TabType.Misc, -1.0f, null, null, null, null, null, null, null, true));
     }
 
     public static BlockPrototypes Instance

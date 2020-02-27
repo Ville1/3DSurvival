@@ -401,7 +401,7 @@ public class Chunk {
             for(int z = 0; z < SIZE_Z; z++) {
                 int random = RNG.Instance.Next(0, 100);
                 string prototype = null;
-                if(random <= 25) {
+                if(random <= 10) {
                     int random2 = RNG.Instance.Next(0, 100);
                     if (random2 < 40) {
                         prototype = "tall_grass";
@@ -410,8 +410,14 @@ public class Chunk {
                     } else {
                         prototype = "short_grass";
                     }
+                } else if(random <= 15) {
+                    prototype = "stones";
+                } else if (random <= 20) {
+                    prototype = "sticks";
+                } else if (random <= 24) {
+                    prototype = "flint";
                 }
-                Block air_block = Blocks.Where(b => b.Coordinates.X == x + X_Start && b.Coordinates.Z == z + Z_Start && b.Internal_Name == BlockPrototypes.AIR_INTERNAL_NAME).OrderBy(b => b.Coordinates.Y).FirstOrDefault();
+                Block air_block = Temp_Data.Air_Blocks.Where(b => b.Coordinates.X == x + X_Start && b.Coordinates.Z == z + Z_Start).OrderBy(b => b.Coordinates.Y).FirstOrDefault();
                 if (prototype != null && air_block != null) {
                     Block block_under = Blocks.Where(b => b.Coordinates.X == x + X_Start && b.Coordinates.Z == z + Z_Start && b.Coordinates.Y == air_block.Coordinates.Y - 1).First();
                     if (block_under != null && block_under.Supports_Top) {

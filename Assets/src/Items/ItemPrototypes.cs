@@ -15,10 +15,19 @@ public class ItemPrototypes
         prototypes.Add(new Item("Wood", "wood", 100, 1.0f, 1.0f, "wood", SpriteManager.SpriteType.Item));
         prototypes.Add(new Item("Plant fiber", "plant_fiber", 100, 1.0f, 1.0f, "placeholder", SpriteManager.SpriteType.Item));
         prototypes.Add(new Item("Dirt", "dirt", 100, 1.0f, 1.0f, "dirt", SpriteManager.SpriteType.Block));
+        prototypes.Add(new Item("Stick", "stick", 100, 1.0f, 1.0f, "placeholder", SpriteManager.SpriteType.Item));
+        prototypes.Add(new Item("Flint", "flint", 100, 1.0f, 1.0f, "placeholder", SpriteManager.SpriteType.Item));
 
-        prototypes.Add(new Tool("Dev Hammer", "dev_hammer", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Hammer, 999, 50.0f));
-        prototypes.Add(new Tool("Dev Pickaxe", "dev_pickaxe", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Pickaxe, 999, 50.0f));
-        prototypes.Add(new Tool("Dev Shovel", "dev_shovel", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Shovel, 999, 50.0f));
+
+        prototypes.Add(new Item("Rope", "rope", 100, 1.0f, 1.0f, "placeholder", SpriteManager.SpriteType.Item));
+        prototypes.Add(new Item("Sharp flint", "sharp_flint", 100, 1.0f, 1.0f, "placeholder", SpriteManager.SpriteType.Item));
+
+        prototypes.Add(new Tool("Flint axe", "flint_axe", 100, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Axe, 1, 1.0f));
+        prototypes.Add(new Tool("Stone hammer", "stone_hammer", 100, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Hammer, 1, 1.0f));
+
+        prototypes.Add(new Tool("Dev hammer", "dev_hammer", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Hammer, 999, 50.0f));
+        prototypes.Add(new Tool("Dev pickaxe", "dev_pickaxe", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Pickaxe, 999, 50.0f));
+        prototypes.Add(new Tool("Dev shovel", "dev_shovel", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Shovel, 999, 50.0f));
     }
 
     public static ItemPrototypes Instance

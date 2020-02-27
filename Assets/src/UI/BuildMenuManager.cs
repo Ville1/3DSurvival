@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class BuildMenuManager : MonoBehaviour
 {
-    public enum TabType { Misc, Test1, Test2 }
+    public enum TabType { Misc }
 
     public static BuildMenuManager Instance { get; private set; }
 
