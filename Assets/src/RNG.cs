@@ -37,6 +37,11 @@ public class RNG
         return generator.Next(min, max + 1);
     }
 
+    public float Next_F()
+    {
+        return generator.Next(0, 101) * 0.01f;
+    }
+
     public string String(int lenght)
     {
         if (lenght <= 0) {

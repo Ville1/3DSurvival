@@ -58,6 +58,7 @@ public class Block : MapObject {
     public UpdateDelegate Update_Action { get; private set; }
     public CreateDelegate Create_Action { get; private set; }
     public bool Supports_Top { get; private set; }
+    public bool Is_Air { get { return Internal_Name == BlockPrototypes.AIR_INTERNAL_NAME; } }
 
     private GameObject crack_cube;
     private float update_cooldown;
@@ -197,6 +198,7 @@ public class Block : MapObject {
         Create_Action = prototype.Create_Action;
         Supports_Top = prototype.Supports_Top;
 
+        GameObject.SetActive(!Inactive_GameObject);
         if (changed_prefab) {
             Change_Prefab();
         }
@@ -204,7 +206,6 @@ public class Block : MapObject {
             Update_Material();
             Update_Model();
         }
-        GameObject.SetActive(!Inactive_GameObject);
     }
 
     public void Rotate(float degrees_x, float degrees_y, float degrees_z)
