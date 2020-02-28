@@ -270,6 +270,8 @@ public class Chunk {
                     if (x < 0 || x >= SIZE_X) {
                         continue;
                     }
+                    //TODO
+                    //ArgumentOutOfRangeException: Argument is out of range.                    //Parameter name: index
                     Block block = Temp_Data.Air_Blocks.FirstOrDefault(b => b.Coordinates.X == X_Start + x && b.Coordinates.Z == Z_Start + side_max_z && b.Coordinates.Y == Temp_Data.Top_Most_Blocks[x][hill_start_z + hill_size_z - 1].Coordinates.Y);
                     if (block == null) {
                         continue;

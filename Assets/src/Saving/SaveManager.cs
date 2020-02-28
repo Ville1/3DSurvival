@@ -32,8 +32,13 @@ public class SaveManager
         try {
             this.path = path;
             data = new SaveData();
-            data.Player_Coordinates = new Coordinates(Player.Current.Position).Save_Data;
-            data.Player_Spawn = Map.Instance.Player_Spawn.Coordinates.Save_Data;
+            data.Player = new PlayerSaveData();
+            data.Player.Coordinates = new Coordinates(Player.Current.Position).Save_Data;
+            data.Player.Spawn = Map.Instance.Player_Spawn.Coordinates.Save_Data;
+            data.Player.Items = new List<ItemSaveData>();
+            foreach(Item item in Player.Current.Inventory) {
+                data.Player.Items.Add(item.Save_Data);
+            }
             data.Chunks = new List<ChunkSaveData>();
             return true;
         }
@@ -96,6 +101,20 @@ public class SaveManager
             CustomLogger.Instance.Error(exception.ToString());
             data = null;
             return false;
+        }
+    }
+
+    public List<Item> Load_Items()
+    {
+        if (data == null) {
+            CustomLogger.Instance.Error("Start_Loading needs to be called before Load_Items");
+            return null;
+        } else {
+            List<Item> items = new List<Item>();
+            foreach(ItemSaveData item_data in data.Player.Items) {
+                items.Add(new Item(item_data));
+            }
+            return items;
         }
     }
 

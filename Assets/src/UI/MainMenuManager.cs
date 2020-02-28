@@ -52,7 +52,7 @@ public class MainMenuManager : MonoBehaviour
     {
         Visible = false;
         //Map.Instance.Generate_New(5, 10, 5, 7, 7, true);
-        Map.Instance.Generate_New(2, 10, 2, 2, 2, true, true);
+        Map.Instance.Generate_New(5, 10, 5, 7, 7, true, true);
     }
 
     public void Exit_Button_On_Click()

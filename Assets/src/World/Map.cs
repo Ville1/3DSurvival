@@ -396,8 +396,13 @@ public class Map {
     private void Finish_Loading()
     {
         SaveData data = SaveManager.Instance.Data;
-        player_spawn = blocks.OrderBy(x => x.Coordinates.Y).FirstOrDefault(x => x.Coordinates.X == data.Player_Spawn.X && x.Coordinates.Z == data.Player_Spawn.Z && x.Passable);
-        Player player = new Player(new Coordinates(data.Player_Coordinates).Vector, Player.Prototype, Entity_Container);
+        player_spawn = blocks.OrderBy(x => x.Coordinates.Y).FirstOrDefault(x => x.Coordinates.X == data.Player.Spawn.X && x.Coordinates.Z == data.Player.Spawn.Z && x.Passable);
+        Player player = new Player(new Coordinates(data.Player.Coordinates).Vector, Player.Prototype, Entity_Container);
+
+        foreach(Item item in SaveManager.Instance.Load_Items()) {
+            player.Inventory.Add(item);
+        }
+
         entities.Add(player);
         Load_Chunks();
 

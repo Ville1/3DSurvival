@@ -18,15 +18,14 @@
     {
         Id = current_id;
         current_id++;
+        Change_To(prototype, prototype.Max_Durability);
+    }
 
-        Name = prototype.Name;
-        Internal_Name = prototype.Internal_Name;
-        Durability = prototype.Max_Durability;
-        Max_Durability = prototype.Max_Durability;
-        Weight = prototype.Weight;
-        Volyme = prototype.Volyme;
-        UI_Sprite = prototype.UI_Sprite;
-        UI_Sprite_Type = prototype.UI_Sprite_Type;
+    public Item(ItemSaveData data)
+    {
+        Id = current_id;
+        current_id++;
+        Change_To(ItemPrototypes.Instance.Get_Item(data.Internal_Name), data.Durability);
     }
 
     public Item(string name, string internal_name, int durability, float weight, float volyme, string ui_sprite, SpriteManager.SpriteType ui_sprite_type)
@@ -39,6 +38,28 @@
         Volyme = volyme;
         UI_Sprite = ui_sprite;
         UI_Sprite_Type = ui_sprite_type;
+    }
+
+    public ItemSaveData Save_Data
+    {
+        get {
+            return new ItemSaveData {
+                Internal_Name = Internal_Name,
+                Durability = Durability
+            };
+        }
+    }
+
+    private void Change_To(Item prototype, float durability)
+    {
+        Name = prototype.Name;
+        Internal_Name = prototype.Internal_Name;
+        Durability = durability;
+        Max_Durability = prototype.Max_Durability;
+        Weight = prototype.Weight;
+        Volyme = prototype.Volyme;
+        UI_Sprite = prototype.UI_Sprite;
+        UI_Sprite_Type = prototype.UI_Sprite_Type;
     }
 
     public override string ToString()

@@ -102,6 +102,8 @@
     <Compile Include="Assets\src\Saving\BlockSaveData.cs" />
     <Compile Include="Assets\src\Saving\ChunkSaveData.cs" />
     <Compile Include="Assets\src\Saving\CoordinatesSaveData.cs" />
+    <Compile Include="Assets\src\Saving\ItemSaveData.cs" />
+    <Compile Include="Assets\src\Saving\PlayerSaveData.cs" />
     <Compile Include="Assets\src\Saving\SaveData.cs" />
     <Compile Include="Assets\src\Saving\SaveManager.cs" />
     <Compile Include="Assets\src\SpriteManager.cs" />
