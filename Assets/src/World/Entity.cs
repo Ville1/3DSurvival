@@ -8,6 +8,9 @@ public class Entity : MapObject {
     public long Id { get; private set; }
     public Inventory Inventory { get; protected set; }
 
+    private bool paused;
+    private bool is_kinematic;
+
     public Entity(Vector3 position, Entity prototype, GameObject container) : base(prototype.Name, position, container, new PrototypeData(prototype.Prefab_Name, prototype.Material, prototype.Material_Type), true)
     {
         Id = current_id;
@@ -16,12 +19,14 @@ public class Entity : MapObject {
 
         GameObject.name = string.Format("{0}#{1}", GAME_OBJECT_NAME_PREFIX, Id);
         Map.Instance.Add_Entity(this);
+        paused = false;
     }
 
     public Entity(string name, string prefab_name, string material, MaterialManager.MaterialType? material_type, string model_name) : base(name, prefab_name, material, material_type, model_name)
     {
         Id = -1;
         Inventory = new Inventory();
+        paused = false;
     }
 
     public void Update(float delta_time)
@@ -60,5 +65,21 @@ public class Entity : MapObject {
             return null;
         }
         return id;
+    }
+
+    public bool Paused
+    {
+        get {
+            return paused;
+        }
+        set {
+            if(paused == value) {
+                return;
+            }
+            paused = value;
+            if (!is_kinematic && Rigidbody != null) {
+                Rigidbody.isKinematic = paused;
+            }
+        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using UnityEngine;
 
 public class Coordinates
@@ -30,6 +28,13 @@ public class Coordinates
         Z = (int)vector.z;
     }
 
+    public Coordinates(CoordinatesSaveData coordinates)
+    {
+        X = coordinates.X;
+        Y = coordinates.Y;
+        Z = coordinates.Z;
+    }
+
     public Vector3 Vector
     {
         get {
@@ -39,6 +44,17 @@ public class Coordinates
             X = (int)value.x;
             Y = (int)value.y;
             Z = (int)value.z;
+        }
+    }
+
+    public CoordinatesSaveData Save_Data
+    {
+        get {
+            return new CoordinatesSaveData {
+                X = X,
+                Y = Y,
+                Z = Z
+            };
         }
     }
     

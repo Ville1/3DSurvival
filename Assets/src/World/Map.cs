@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine;
 
 public class Map {
+    public enum State { Normal, Generating, Saving, Loading }
+
     private static Map instance;
 
     private static bool PRINT_DIAGNOSTICS = true;
@@ -15,7 +17,7 @@ public class Map {
     public int Initial_Chunk_Size_Z { get; private set; }
     public GameObject Entity_Container { get; private set; }
     public GameObject Block_Container { get; private set; }
-    public bool Generating { get; private set; }
+    public State Current_State { get; private set; }
     public int Rendering_Distance { get; private set; }
     public bool Limited_Generation { get; private set; }
     public bool Simple_Elevation { get; private set; }
@@ -41,6 +43,8 @@ public class Map {
     private float loop_time_1;
     private float loop_time_2;
     private float loop_time_3;
+    private bool paused;
+    private int chunks_processed;
 
     private Map()
     {
@@ -66,6 +70,9 @@ public class Map {
         loop_time_1 = 0.0f;
         loop_time_2 = 0.0f;
         loop_time_3 = 0.0f;
+        paused = false;
+        chunks_processed = 0;
+        Current_State = State.Normal;
     }
 
     public static Map Instance
@@ -93,6 +100,29 @@ public class Map {
         }
     }
 
+    public Block Player_Spawn
+    {
+        get {
+            return player_spawn;
+        }
+    }
+
+    public bool Paused
+    {
+        get {
+            return paused;
+        }
+        set {
+            if(paused == value) {
+                return;
+            }
+            paused = value;
+            foreach(Entity entity in Entities) {
+                entity.Paused = value;
+            }
+        }
+    }
+
     public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z, int initial_chunk_size_x, int initial_chunk_size_z, bool limited_generation, bool simple_elevation)
     {
         if (PRINT_DIAGNOSTICS) {
@@ -116,14 +146,14 @@ public class Map {
         Limited_Generation = limited_generation;
         Simple_Elevation = simple_elevation;
 
-        Generating = true;
+        Current_State = State.Generating;
         ProgressBarManager.Instance.Active = true;
         Update_Progress();
     }
 
     public void Update(float delta_time)
     {
-        if (Generating) {
+        if (Current_State == State.Generating) {
             if(generation_loop == 0) {
                 Generate_First_Loop();
             } else if (generation_loop == 1) {
@@ -132,8 +162,14 @@ public class Map {
                 Generate_Third_Loop();
             }
             return;
+        } else if(Current_State == State.Saving) {
+            Save();
+            return;
+        } else if (Current_State == State.Loading) {
+            Load();
+            return;
         }
-        if (!active) {
+        if (!active || Paused) {
             return;
         }
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -279,7 +315,7 @@ public class Map {
         Load_Chunks();
 
         active = true;
-        Generating = false;
+        Current_State = State.Normal;
         CameraManager.Instance.Reset();
         ProgressBarManager.Instance.Active = false;
         PlayerGUIManager.Instance.Active = true;
@@ -291,26 +327,118 @@ public class Map {
         }
     }
 
+    public void Start_Saving()
+    {
+        if (!SaveManager.Instance.Start_Saving("C:\\Users\\Ville\\Documents\\temp\\save.json")) {
+            MessageManager.Instance.Show_Message("Error!");
+            return;
+        }
+        Paused = true;
+        Current_State = State.Saving;
+        chunks_processed = 0;
+        ProgressBarManager.Instance.Active = true;
+        Update_Progress();
+    }
+
+    private void Save()
+    {
+        Chunk chunk = chunks[chunks_processed];
+        chunk.Save();
+        chunks_processed++;
+        if (chunks_processed == chunks.Count) {
+            Finish_Saving();
+        } else {
+            Update_Progress();
+        }
+    }
+
+    private void Finish_Saving()
+    {
+        Paused = false;
+        Current_State = State.Normal;
+        ProgressBarManager.Instance.Active = false;
+        if (!SaveManager.Instance.Finish_Saving()) {
+            MessageManager.Instance.Show_Message("Error!");
+            return;
+        }
+    }
+
+    public void Start_Loading()
+    {
+        Delete();
+        if (!SaveManager.Instance.Start_Loading("C:\\Users\\Ville\\Documents\\temp\\save.json")) {
+            MessageManager.Instance.Show_Message("Error!");
+            return;
+        }
+        Chunk.Reset_Current_Id();
+        Block.Reset_Current_Id();
+        Current_State = State.Loading;
+        chunks_processed = 0;
+        ProgressBarManager.Instance.Active = true;
+        Update_Progress();
+    }
+
+    private void Load()
+    {
+        Chunk chunk = SaveManager.Instance.Load_Next();
+        foreach (Block block in chunk.Blocks) {
+            blocks.Add(block);
+        }
+        chunks.Add(chunk);
+        chunks_processed++;
+        if (chunks_processed == SaveManager.Instance.Chunks_Loaded) {
+            Finish_Loading();
+        } else {
+            Update_Progress();
+        }
+    }
+
+    private void Finish_Loading()
+    {
+        SaveData data = SaveManager.Instance.Data;
+        player_spawn = blocks.OrderBy(x => x.Coordinates.Y).FirstOrDefault(x => x.Coordinates.X == data.Player_Spawn.X && x.Coordinates.Z == data.Player_Spawn.Z && x.Passable);
+        Player player = new Player(new Coordinates(data.Player_Coordinates).Vector, Player.Prototype, Entity_Container);
+        entities.Add(player);
+        Load_Chunks();
+
+        active = true;
+        Current_State = State.Normal;
+        CameraManager.Instance.Reset();
+        SaveManager.Instance.Finish_Loading();
+        ProgressBarManager.Instance.Active = false;
+        PlayerGUIManager.Instance.Active = true;
+    }
+
     private void Update_Progress()
     {
-        float loop_1_current = chunks.Count;
-        float loop_2_current = second_loop_count;
-        float loop_3_current = third_loop_count;
-        float chunk_count = (float)Initial_Chunk_Size_X * (float)Initial_Chunk_Size_Z;
-        float progress = (loop_1_current + loop_2_current + loop_3_current) / (chunk_count * 3.0f);
-        string message = "Generating map";
-        switch (generation_loop) {
-            case 0:
-                message = "Generating terrain";
-                break;
-            case 1:
-                message = "Fine tuning terrain";
-                break;
-            case 2:
-                message = "Fine tuning details";
-                break;
+        if (Current_State == State.Generating) {
+            float loop_1_current = chunks.Count;
+            float loop_2_current = second_loop_count;
+            float loop_3_current = third_loop_count;
+            float chunk_count = (float)Initial_Chunk_Size_X * (float)Initial_Chunk_Size_Z;
+            float progress = (loop_1_current + loop_2_current + loop_3_current) / (chunk_count * 3.0f);
+            string message = "Generating map";
+            switch (generation_loop) {
+                case 0:
+                    message = "Generating terrain";
+                    break;
+                case 1:
+                    message = "Fine tuning terrain";
+                    break;
+                case 2:
+                    message = "Fine tuning details";
+                    break;
+            }
+            ProgressBarManager.Instance.Show(string.Format("{0}... {1}%", message, Helper.Float_To_String(100.0f * progress, 1)), progress);
+        } else if(Current_State == State.Saving) {
+            float progress = chunks_processed / (float)chunks.Count; ;
+            ProgressBarManager.Instance.Show(string.Format("Saving... {0}%", Helper.Float_To_String(100.0f * progress, 1)), progress);
+        } else if (Current_State == State.Loading) {
+            float progress = chunks_processed / (float)SaveManager.Instance.Chunks_Loaded; ;
+            ProgressBarManager.Instance.Show(string.Format("Loading... {0}%", Helper.Float_To_String(100.0f * progress, 1)), progress);
+        } else {
+            CustomLogger.Instance.Error(string.Format("State = {0}", Current_State.ToString()));
         }
-        ProgressBarManager.Instance.Show(string.Format("{0}... {1}%", message, Helper.Float_To_String(100.0f * progress, 1)), progress);
     }
 
     private void Generate_Chunks()

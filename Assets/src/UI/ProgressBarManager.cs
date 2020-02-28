@@ -40,6 +40,9 @@ public class ProgressBarManager : MonoBehaviour {
             }
             Panel.SetActive(value);
             MenuManager.Instance.Interactable = !value;
+            if (Active) {
+                MainMenuManager.Instance.Visible = false;
+            }
         }
     }
 

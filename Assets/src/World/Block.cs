@@ -342,10 +342,44 @@ public class Block : MapObject {
         Update_Action(delta_time, this);
     }
 
+    public static Block Load(BlockSaveData data, GameObject container)
+    {
+        if(current_id <= data.Id) {
+            current_id = data.Id + 1;
+        }
+        Block prototype = BlockPrototypes.Instance.Get(data.Internal_Name);
+        Block block = new Block(new Coordinates(data.Coordinates), prototype, container);
+        if(data.Rotation != null && (data.Rotation.X != 0 || data.Rotation.Y != 0 || data.Rotation.Z != 0)) {
+            block.Rotate(data.Rotation.X, data.Rotation.Y, data.Rotation.Z);
+        }
+        return block;
+    }
+
+    public BlockSaveData Save_Data
+    {
+        get {
+            return new BlockSaveData {
+                Id = Id,
+                Coordinates = Coordinates.Save_Data,
+                Internal_Name = Internal_Name,
+                Rotation = new CoordinatesSaveData {
+                    X = (int)GameObject.transform.rotation.eulerAngles.x,
+                    Y = (int)GameObject.transform.rotation.eulerAngles.y,
+                    Z = (int)GameObject.transform.rotation.eulerAngles.z
+                }
+            };
+        }
+    }
+
     public new void Delete()
     {
         base.Delete();
         Map.Instance.Remove_Block(this);
+    }
+
+    public static void Reset_Current_Id()
+    {
+        current_id = 0;
     }
 
     public override string ToString()

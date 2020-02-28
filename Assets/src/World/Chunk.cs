@@ -34,6 +34,26 @@ public class Chunk {
         Average_Elevation = 0;
     }
 
+    public Chunk(ChunkSaveData data)
+    {
+        Id = data.Id;
+        if(current_id <= data.Id) {
+            current_id = data.Id + 1;
+        }
+        X = data.X;
+        Z = data.Z;
+        Blocks = new List<Block>();
+        GameObject = new GameObject(string.Format("Chunk_({0},{1})#{2}", X, Z, Id));
+        GameObject.transform.parent = Map.Instance.Block_Container.transform;
+        GameObject.SetActive(true);
+        Average_Elevation = 0;
+
+        foreach(BlockSaveData block_data in data.Blocks) {
+            Block block = Block.Load(block_data, GameObject);
+            Blocks.Add(block);
+        }
+    }
+
     public void Delete()
     {
         GameObject.Destroy(GameObject);
@@ -431,6 +451,25 @@ public class Chunk {
     public void End_Generation()
     {
         Temp_Data = null;
+    }
+
+    public void Save()
+    {
+        ChunkSaveData data = new ChunkSaveData();
+        data.Id = Id;
+        data.X = X;
+        data.Z = Z;
+        data.Blocks = new List<BlockSaveData>();
+        foreach(Block block in Blocks) {
+            data.Blocks.Add(block.Save_Data);
+        }
+
+        SaveManager.Instance.Add(data);
+    }
+
+    public static void Reset_Current_Id()
+    {
+        current_id = 0;
     }
 
     public override string ToString()

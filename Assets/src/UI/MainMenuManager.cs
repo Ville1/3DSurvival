@@ -59,4 +59,17 @@ public class MainMenuManager : MonoBehaviour
     {
         Main.Quit();
     }
+
+    public void Save_Game_Button_On_Click()
+    {
+        if (!Map.Instance.Active) {
+            return;
+        }
+        Map.Instance.Start_Saving();
+    }
+
+    public void Load_Game_Button_On_Click()
+    {
+        Map.Instance.Start_Loading();
+    }
 }
