@@ -17,6 +17,7 @@ public class BlockPrototypes {
         Verb dig_verb = new Verb("Dig", "Digging");
         Verb remove_verb = new Verb("Remove", "Removing");
         Verb pickup_verb = new Verb("Pick up", "Picking up");
+        Verb chop_verb = new Verb("Chop", "Chopping");
 
         Verb harvest_verb = new Verb("Harvest", "Harvesting");
 
@@ -87,6 +88,11 @@ public class BlockPrototypes {
 
         prototypes.Add(new Block("Stick wall", "stick_wall", "planks", null, false, false, false, 50, "placeholder", SpriteManager.SpriteType.UI, 10.0f, 100.0f, new Dictionary<string, int>() { { "stick", 1 }, { "rope", 1 } },
             new Dictionary<string, int>() { { "stick", 3 }, { "rope", 2 } }, null, null, dismantle_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Hammer, 1 }, { Tool.ToolType.Axe, 1 } }, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Hammer, 1 } }, BuildMenuManager.TabType.Misc, -1.0f, null, null, null, null, null, null, null, true));
+
+        prototypes.Add(new Block("Tree trunk", "trunk", null, "trunk", false, false, false, 50, "placeholder", SpriteManager.SpriteType.UI, 10.0f, 100.0f, new Dictionary<string, int>() { { "wood", 1 } }, null, null, null, chop_verb, new Dictionary<Tool.ToolType, int>() { { Tool.ToolType.Axe, 1 } }, null, null,
+            -1.0f, null, null, null, null, null, null, null, false));
+        prototypes.Add(new Block("Leaves", "leaves", "leaves", null, false, false, false, 5, "leaves", SpriteManager.SpriteType.Block, 1.0f, 100.0f, new Dictionary<string, int>() { { "stick", 1 } }, null,
+            null, null, remove_verb, null, null, null, -1.0f, null, null, null, null, null, null, null, true));
     }
 
     public static BlockPrototypes Instance

@@ -472,7 +472,7 @@ public class Map {
 
     private int Get_Chuck_Elevation(Chunk chunk)
     {
-        int size_elevation = Size_Y / 2;
+        int size_elevation = Size_Y / 3;
         if (Simple_Elevation) {
             return size_elevation;
         }

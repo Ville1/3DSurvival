@@ -271,7 +271,8 @@ public class Chunk {
                         continue;
                     }
                     //TODO
-                    //ArgumentOutOfRangeException: Argument is out of range.                    //Parameter name: index
+                    //ArgumentOutOfRangeException: Argument is out of range.
+                    //Parameter name: index
                     Block block = Temp_Data.Air_Blocks.FirstOrDefault(b => b.Coordinates.X == X_Start + x && b.Coordinates.Z == Z_Start + side_max_z && b.Coordinates.Y == Temp_Data.Top_Most_Blocks[x][hill_start_z + hill_size_z - 1].Coordinates.Y);
                     if (block == null) {
                         continue;
@@ -436,17 +437,58 @@ public class Chunk {
                     prototype = "stones";
                 } else if (random <= 20) {
                     prototype = "sticks";
-                } else if (random <= 24) {
+                } else if (random <= 23) {
                     prototype = "flint";
+                } else if (random <= 30) {
+                    prototype = "trunk";
                 }
                 Block air_block = Temp_Data.Air_Blocks.Where(b => b.Coordinates.X == x + X_Start && b.Coordinates.Z == z + Z_Start).OrderBy(b => b.Coordinates.Y).FirstOrDefault();
                 if (prototype != null && air_block != null) {
                     Block block_under = Blocks.Where(b => b.Coordinates.X == x + X_Start && b.Coordinates.Z == z + Z_Start && b.Coordinates.Y == air_block.Coordinates.Y - 1).First();
                     if (block_under != null && block_under.Supports_Top) {
                         air_block.Change_To(BlockPrototypes.Instance.Get(prototype));
+                        if(prototype == "trunk") {
+                            Generate_Tree(air_block);
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private void Generate_Tree(Block start)
+    {
+        int max_height = Size_Y - start.Coordinates.Y;
+        if(max_height <= 1) {
+            return;
+        }
+        int height = max_height;
+        if(max_height > 2) {
+            height = Mathf.RoundToInt(2 + (max_height - 2) * RNG.Instance.Next_F());
+        }
+        if(height == 2) {
+            Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start][start.Coordinates.Y + 1].Change_To(BlockPrototypes.Instance.Get("leaves"));
+            return;
+        }
+        for(int h = start.Coordinates.Y + 1; h < start.Coordinates.Y + height; h++) {
+            if (h < start.Coordinates.Y + height - 1) {
+                Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start][h].Change_To(BlockPrototypes.Instance.Get("trunk"));
+            } else {
+                Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start][h].Change_To(BlockPrototypes.Instance.Get("leaves"));
+            }
+        }
+        int top = start.Coordinates.Y + height - 1;
+        if (start.Coordinates.X - X_Start - 1 >= 0 && Temp_Data.All_Blocks[start.Coordinates.X - X_Start - 1][start.Coordinates.Z - Z_Start][top].Is_Air) {
+            Temp_Data.All_Blocks[start.Coordinates.X - X_Start - 1][start.Coordinates.Z - Z_Start][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
+        }
+        if (start.Coordinates.Z - Z_Start - 1 >= 0 && Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start - 1][top].Is_Air) {
+            Temp_Data.All_Blocks[start.Coordinates.X - X_Start ][start.Coordinates.Z - Z_Start - 1][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
+        }
+        if (start.Coordinates.X - X_Start + 1 < SIZE_X && Temp_Data.All_Blocks[start.Coordinates.X - X_Start + 1][start.Coordinates.Z - Z_Start][top].Is_Air) {
+            Temp_Data.All_Blocks[start.Coordinates.X - X_Start + 1][start.Coordinates.Z - Z_Start][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
+        }
+        if (start.Coordinates.Z - Z_Start + 1 < SIZE_Z && Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start + 1][top].Is_Air) {
+            Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start + 1][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
         }
     }
 
