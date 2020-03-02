@@ -21,6 +21,7 @@ public class Map {
     public int Rendering_Distance { get; private set; }
     public bool Limited_Generation { get; private set; }
     public bool Simple_Elevation { get; private set; }
+    public bool Structural_Integrity_Enabled { get; private set; }
 
     private GameObject game_object;
     private List<Block> blocks;
@@ -48,6 +49,9 @@ public class Map {
     private List<Block> recent_blocks;
     private Block remove_base_pilar_support;
     private List<Block> remove_base_pilar_support_queue;
+    private bool deleting_old;
+    private bool entities_deleted;
+    private int deletion_index;
 
     private Map()
     {
@@ -79,6 +83,8 @@ public class Map {
         recent_blocks = new List<Block>();
         remove_base_pilar_support = null;
         remove_base_pilar_support_queue = new List<Block>();
+        deleting_old = false;
+        entities_deleted = false;
     }
 
     public static Map Instance
@@ -129,12 +135,12 @@ public class Map {
         }
     }
 
-    public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z, int initial_chunk_size_x, int initial_chunk_size_z, bool limited_generation, bool simple_elevation)
+    public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z, int initial_chunk_size_x, int initial_chunk_size_z, bool limited_generation, bool simple_elevation, bool structural_integrity_enabled)
     {
         if (PRINT_DIAGNOSTICS) {
             stopwatch = Stopwatch.StartNew();
         }
-        Delete();
+        Start_Delete();
         chunk_index_x = 0;
         chunk_index_z = 0;
         generation_loop = 0;
@@ -151,6 +157,7 @@ public class Map {
         Initial_Chunk_Size_Z = initial_chunk_size_z;
         Limited_Generation = limited_generation;
         Simple_Elevation = simple_elevation;
+        Structural_Integrity_Enabled = structural_integrity_enabled;
 
         Current_State = State.Generating;
         ProgressBarManager.Instance.Active = true;
@@ -159,6 +166,10 @@ public class Map {
 
     public void Update(float delta_time)
     {
+        if (deleting_old) {
+            Delete();
+            return;
+        }
         if (Current_State == State.Generating) {
             if(generation_loop == 0) {
                 Generate_First_Loop();
@@ -334,9 +345,9 @@ public class Map {
         }
     }
 
-    public void Start_Saving()
+    public void Start_Saving(string path)
     {
-        if (!SaveManager.Instance.Start_Saving("C:\\Users\\Ville\\Documents\\temp\\save.json")) {
+        if (!SaveManager.Instance.Start_Saving(path)) {
             MessageManager.Instance.Show_Message("Error!");
             return;
         }
@@ -370,13 +381,13 @@ public class Map {
         }
     }
 
-    public void Start_Loading()
+    public void Start_Loading(string path)
     {
-        Delete();
-        if (!SaveManager.Instance.Start_Loading("C:\\Users\\Ville\\Documents\\temp\\save.json")) {
+        if (!SaveManager.Instance.Start_Loading(path)) {
             MessageManager.Instance.Show_Message("Error!");
             return;
         }
+        Start_Delete();
         Chunk.Reset_Current_Id();
         Block.Reset_Current_Id();
         Current_State = State.Loading;
@@ -403,6 +414,7 @@ public class Map {
     private void Finish_Loading()
     {
         SaveData data = SaveManager.Instance.Data;
+        Structural_Integrity_Enabled = data.Structural_Integrity_Enabled;
         player_spawn = blocks.OrderBy(x => x.Coordinates.Y).FirstOrDefault(x => x.Coordinates.X == data.Player.Spawn.X && x.Coordinates.Z == data.Player.Spawn.Z && x.Passable);
         Player player = new Player(new Coordinates(data.Player.Coordinates).Vector, Player.Prototype, Entity_Container);
 
@@ -423,6 +435,14 @@ public class Map {
 
     private void Update_Progress()
     {
+        if (deleting_old) {
+            float entity_list_value = 5.0f;
+            float current = deletion_index + (entities_deleted ? entity_list_value : 0.0f);
+            float max = chunks.Count + entity_list_value;
+            float progress = current / max;
+            ProgressBarManager.Instance.Show(string.Format("Clearing map... {0}%", Helper.Float_To_String(100.0f * progress, 1)), progress);
+            return;
+        }
         if (Current_State == State.Generating) {
             float loop_1_current = chunks.Count;
             float loop_2_current = second_loop_count;
@@ -634,7 +654,7 @@ public class Map {
 
     public void Remove_Base_Pilar_Support(Block block)
     {
-        if(Current_State != State.Normal || remove_base_pilar_support == block || remove_base_pilar_support_queue.Contains(block)) {
+        if(!Structural_Integrity_Enabled || Current_State != State.Normal || remove_base_pilar_support == block || remove_base_pilar_support_queue.Contains(block)) {
             return;
         }
         remove_base_pilar_support_queue.Add(block);
@@ -673,53 +693,76 @@ public class Map {
         }
     }
 
+    private void Start_Delete()
+    {
+        if(!active) {
+            return;
+        }
+        deleting_old = true;
+        active = false;
+        entities_deleted = false;
+        deletion_index = 0;
+    }
+
     private void Delete()
     {
-        foreach(Block block in blocks) {
-            block.Delete();
+        if(!entities_deleted) {
+            foreach (Entity entity in entities) {
+                if (entity is Player) {
+                    (entity as Player).Delete();
+                } else if (entity is Mob) {
+                    (entity as Mob).Delete();
+                } else {
+                    entity.Delete();
+                }
+            }
+            foreach (Entity entity in entities_to_be_added) {
+                if (entity is Player) {
+                    (entity as Player).Delete();
+                } else if (entity is Mob) {
+                    (entity as Mob).Delete();
+                } else {
+                    entity.Delete();
+                }
+            }
+            foreach (Entity entity in entities_to_be_removed) {
+                if (entity is Player) {
+                    (entity as Player).Delete();
+                } else if (entity is Mob) {
+                    (entity as Mob).Delete();
+                } else {
+                    entity.Delete();
+                }
+            }
+            entities.Clear();
+            entities_to_be_added.Clear();
+            entities_to_be_removed.Clear();
+            recent_blocks.Clear();
+            remove_base_pilar_support = null;
+            remove_base_pilar_support_queue.Clear();
+            entities.Clear();
+
+            entities_deleted = true;
+            Update_Progress();
+            return;
         }
-        blocks.Clear();
-        foreach(Chunk chunk in chunks) {
-            chunk.Delete();
+
+        Chunk chunk = chunks[deletion_index];
+        chunk.Delete();
+        deletion_index++;
+        if(deletion_index == chunks.Count - 1) {
+            Finish_Delete();
+        } else {
+            Update_Progress();
         }
+    }
+
+    private void Finish_Delete()
+    {
         chunks.Clear();
         active_chunks.Clear();
-
-        foreach (Entity entity in entities) {
-            if(entity is Player) {
-                (entity as Player).Delete();
-            } else if(entity is Mob) {
-                (entity as Mob).Delete();
-            } else {
-                entity.Delete();
-            }
-        }
-        foreach (Entity entity in entities_to_be_added) {
-            if (entity is Player) {
-                (entity as Player).Delete();
-            } else if (entity is Mob) {
-                (entity as Mob).Delete();
-            } else {
-                entity.Delete();
-            }
-        }
-        foreach (Entity entity in entities_to_be_removed) {
-            if (entity is Player) {
-                (entity as Player).Delete();
-            } else if (entity is Mob) {
-                (entity as Mob).Delete();
-            } else {
-                entity.Delete();
-            }
-        }
-        entities.Clear();
-        entities_to_be_added.Clear();
-        entities_to_be_removed.Clear();
-        recent_blocks.Clear();
-
-        remove_base_pilar_support = null;
-        remove_base_pilar_support_queue.Clear();
-
-        active = false;
+        blocks.Clear();
+        deleting_old = false;
+        Update_Progress();
     }
 }

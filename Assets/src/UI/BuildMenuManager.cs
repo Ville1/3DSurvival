@@ -89,9 +89,7 @@ public class BuildMenuManager : MonoBehaviour
             Main_Panel.SetActive(value);
             Side_Panel.SetActive(false);
             if (Active) {
-                MainMenuManager.Instance.Visible = false;
-                InventoryGUIManager.Instance.Active = false;
-                CraftingMenuManager.Instance.Active = false;
+                MasterUIManager.Instance.Close_Others(GetType().Name);
                 Update_GUI();
                 Select_Tab(TabType.Misc);
                 Preview_Active = false;

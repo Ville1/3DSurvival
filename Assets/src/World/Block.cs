@@ -412,6 +412,9 @@ public class Block : MapObject {
     
     public void Update_Structural_Integrity()
     {
+        if (!Map.Instance.Structural_Integrity_Enabled) {
+            return;
+        }
         Start_Stopwatch_Logging("STUCTURAL INTEGRITY");
         Start_Stopwatch("Update_Structural_Integrity");
         update_structural_integrity_calls = 0;

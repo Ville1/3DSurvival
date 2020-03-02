@@ -27,7 +27,7 @@ public class MainMenuManager : MonoBehaviour
 
     }
 
-    public bool Visible
+    public bool Active
     {
         get {
             return Panel.activeSelf;
@@ -37,7 +37,7 @@ public class MainMenuManager : MonoBehaviour
                 return;
             }
             if (value) {
-                MasterUIManager.Instance.Close_All();
+                MasterUIManager.Instance.Close_Others(GetType().Name);
             }
             Panel.SetActive(value);
         }
@@ -45,15 +45,15 @@ public class MainMenuManager : MonoBehaviour
 
     public void Toggle()
     {
-        Visible = !Visible;
+        Active = !Active;
     }
 
     public void New_Game_Button_On_Click()
     {
-        Visible = false;
+        Active = false;
         //Map.Instance.Generate_New(2, 15, 2, 3, 3, true, true);
-        //Map.Instance.Generate_New(5, 15, 5, 7, 7, true, true);
-        Map.Instance.Generate_New(4, 15, 4, 5, 5, true, true);
+        Map.Instance.Generate_New(5, 15, 5, 7, 7, true, true, false);
+        //Map.Instance.Generate_New(4, 15, 4, 5, 5, true, true);
     }
 
     public void Exit_Button_On_Click()
@@ -66,11 +66,11 @@ public class MainMenuManager : MonoBehaviour
         if (!Map.Instance.Active) {
             return;
         }
-        Map.Instance.Start_Saving();
+        SaveGUIManager.Instance.Active = true;
     }
 
     public void Load_Game_Button_On_Click()
     {
-        Map.Instance.Start_Loading();
+        LoadGUIManager.Instance.Active = true;
     }
 }

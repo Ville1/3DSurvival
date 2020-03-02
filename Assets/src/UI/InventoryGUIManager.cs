@@ -57,10 +57,7 @@ public class InventoryGUIManager : MonoBehaviour {
             current_item = null;
             list.Reset_Scroll();
             if (Active) {
-                MainMenuManager.Instance.Visible = false;
-                BuildMenuManager.Instance.Active = false;
-                BuildMenuManager.Instance.Preview_Active = false;
-                CraftingMenuManager.Instance.Active = false;
+                MasterUIManager.Instance.Close_Others(GetType().Name);
                 Update_GUI();
             }
         }

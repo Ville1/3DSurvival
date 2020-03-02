@@ -30,13 +30,38 @@ public class MasterUIManager : MonoBehaviour
     public void Close_All()
     {
         ConsoleManager.Instance.Close_Console();
-        MainMenuManager.Instance.Visible = false;
+        MainMenuManager.Instance.Active = false;
+    }
+
+    public void Close_Others(string type_name)
+    {
+        if(MainMenuManager.Instance != null && typeof(MainMenuManager).Name != type_name) {
+            MainMenuManager.Instance.Active = false;
+        }
+        if (InventoryGUIManager.Instance != null && typeof(InventoryGUIManager).Name != type_name) {
+            InventoryGUIManager.Instance.Active = false;
+        }
+        if (CraftingMenuManager.Instance != null && typeof(CraftingMenuManager).Name != type_name) {
+            CraftingMenuManager.Instance.Active = false;
+        }
+        if (BuildMenuManager.Instance != null && typeof(BuildMenuManager).Name != type_name) {
+            BuildMenuManager.Instance.Active = false;
+        }
+        if (SaveGUIManager.Instance != null && typeof(SaveGUIManager).Name != type_name) {
+            SaveGUIManager.Instance.Active = false;
+        }
+        if (ConfirmationDialogManager.Instance != null && typeof(ConfirmationDialogManager).Name != type_name) {
+            ConfirmationDialogManager.Instance.Active = false;
+        }
+        if (LoadGUIManager.Instance != null && typeof(LoadGUIManager).Name != type_name) {
+            LoadGUIManager.Instance.Active = false;
+        }
     }
 
     public bool Intercept_Keyboard_Input
     {
         get {
-            return ConsoleManager.Instance.Is_Open();
+            return ConsoleManager.Instance.Is_Open() || SaveGUIManager.Instance.Active;
         }
     }
 

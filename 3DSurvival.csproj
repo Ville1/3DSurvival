@@ -109,12 +109,14 @@
     <Compile Include="Assets\src\SpriteManager.cs" />
     <Compile Include="Assets\src\UI\BuildMenuManager.cs" />
     <Compile Include="Assets\src\UI\CameraManager.cs" />
+    <Compile Include="Assets\src\UI\ConfirmationDialogManager.cs" />
     <Compile Include="Assets\src\UI\ConsoleManager.cs" />
     <Compile Include="Assets\src\UI\CraftingMenuManager.cs" />
     <Compile Include="Assets\src\UI\FloatingMessageManager.cs" />
     <Compile Include="Assets\src\UI\InspectorManager.cs" />
     <Compile Include="Assets\src\UI\InventoryGUIManager.cs" />
     <Compile Include="Assets\src\UI\KeyboardManager.cs" />
+    <Compile Include="Assets\src\UI\LoadGUIManager.cs" />
     <Compile Include="Assets\src\UI\MainMenuManager.cs" />
     <Compile Include="Assets\src\UI\MasterUIManager.cs" />
     <Compile Include="Assets\src\UI\MenuManager.cs" />
@@ -122,6 +124,7 @@
     <Compile Include="Assets\src\UI\MouseManager.cs" />
     <Compile Include="Assets\src\UI\PlayerGUIManager.cs" />
     <Compile Include="Assets\src\UI\ProgressBarManager.cs" />
+    <Compile Include="Assets\src\UI\SaveGUIManager.cs" />
     <Compile Include="Assets\src\UI\ScrollableList.cs" />
     <Compile Include="Assets\src\UI\TooltipManager.cs" />
     <Compile Include="Assets\src\Verb.cs" />

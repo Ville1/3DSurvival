@@ -76,7 +76,7 @@ public class CraftingMenuManager : MonoBehaviour {
             Progress_Text.text = string.Empty;
             current_recipe = null;
             if (Active) {
-                MainMenuManager.Instance.Visible = false;
+                MainMenuManager.Instance.Active = false;
                 BuildMenuManager.Instance.Active = false;
                 BuildMenuManager.Instance.Preview_Active = false;
                 InventoryGUIManager.Instance.Active = false;

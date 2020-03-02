@@ -35,10 +35,10 @@ public class KeyboardManager : MonoBehaviour
                 BuildMenuManager.Instance.Active = false;
             } else if (CraftingMenuManager.Instance.Active) {
                 CraftingMenuManager.Instance.Active = false;
-            } else if (MainMenuManager.Instance.Visible) {
-                MainMenuManager.Instance.Visible = false;
+            } else if (MainMenuManager.Instance.Active) {
+                MainMenuManager.Instance.Active = false;
             } else{
-                MainMenuManager.Instance.Visible = true;
+                MainMenuManager.Instance.Active = true;
             }
         }
 

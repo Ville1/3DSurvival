@@ -5,4 +5,5 @@ using System.Collections.Generic;
 public class SaveData {
     public PlayerSaveData Player;
     public List<ChunkSaveData> Chunks;
+    public bool Structural_Integrity_Enabled;
 }

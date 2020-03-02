@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class SaveManager
 {
+    public static readonly string DEFAULT_SAVE_LOCATION = "C:\\Users\\Ville\\Documents\\temp\\";
+
     private static SaveManager instance;
     
     public int Chunks_Loaded { get; private set; }
@@ -14,8 +16,7 @@ public class SaveManager
     private int chunk_index;
 
     private SaveManager()
-    {
-    }
+    { }
 
     public static SaveManager Instance
     {
@@ -32,6 +33,7 @@ public class SaveManager
         try {
             this.path = path;
             data = new SaveData();
+            data.Structural_Integrity_Enabled = Map.Instance.Structural_Integrity_Enabled;
             data.Player = new PlayerSaveData();
             data.Player.Coordinates = new Coordinates(Player.Current.Position).Save_Data;
             data.Player.Spawn = Map.Instance.Player_Spawn.Coordinates.Save_Data;
