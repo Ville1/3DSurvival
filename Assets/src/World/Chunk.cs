@@ -424,6 +424,7 @@ public class Chunk {
     {
         for (int x = 0; x < SIZE_X; x++) {
             for(int z = 0; z < SIZE_Z; z++) {
+                //Details
                 int random = RNG.Instance.Next(0, 100);
                 string prototype = null;
                 if(random <= 10) {
@@ -453,6 +454,21 @@ public class Chunk {
                             Generate_Tree(air_block);
                         }
                     }
+                }
+
+                //Support
+                Block bottom = null;
+                for(int y = 0; y < Size_Y; y++) {
+                    if(bottom == null) {
+                        Temp_Data.All_Blocks[x][z][y].Base_Pilar_Support = true;
+                    } else {
+                        if (bottom.Connections.Is_Connected_To(ConnectionData.Direction.Top, Temp_Data.All_Blocks[x][z][y].Connections)) {
+                            Temp_Data.All_Blocks[x][z][y].Base_Pilar_Support = true;
+                        } else {
+                            break;
+                        }
+                    }
+                    bottom = Temp_Data.All_Blocks[x][z][y];
                 }
             }
         }

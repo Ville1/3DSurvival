@@ -67,6 +67,7 @@ public class Block : MapObject {
     public bool Is_Air { get { return Internal_Name == BlockPrototypes.AIR_INTERNAL_NAME; } }
     public ConnectionData Connections { get; private set; }
     public bool Base_Support { get; private set; }
+    public bool Base_Pilar_Support { get; set; }
 
     private ConnectionData last_connections;
     private GameObject crack_cube;
@@ -81,6 +82,7 @@ public class Block : MapObject {
         current_id++;
         //TODO: Move to Change_To?
         Connections = new ConnectionData(prototype.Connections);
+        Base_Pilar_Support = false;
 
         Change_To(prototype, false, hp, is_preview);
 
@@ -148,6 +150,7 @@ public class Block : MapObject {
         Connections = new ConnectionData(connections);
         last_connections = new ConnectionData(connections);
         Base_Support = base_support;
+        Base_Pilar_Support = false;
     }
 
     public Coordinates Coordinates
@@ -224,6 +227,11 @@ public class Block : MapObject {
         if (update_material) {
             Update_Material();
             Update_Model();
+        }
+
+        if(Base_Pilar_Support && !Connections.Bottom) {
+            Base_Pilar_Support = false;
+            Map.Instance.Remove_Base_Pilar_Support(this);
         }
     }
 
@@ -372,6 +380,7 @@ public class Block : MapObject {
         if(data.Rotation != null && (data.Rotation.X != 0 || data.Rotation.Y != 0 || data.Rotation.Z != 0)) {
             block.Rotate(data.Rotation.X, data.Rotation.Y, data.Rotation.Z);
         }
+        block.Base_Pilar_Support = data.Base_Pilar_Support;
         return block;
     }
 
@@ -386,7 +395,8 @@ public class Block : MapObject {
                     X = (int)GameObject.transform.rotation.eulerAngles.x,
                     Y = (int)GameObject.transform.rotation.eulerAngles.y,
                     Z = (int)GameObject.transform.rotation.eulerAngles.z
-                }
+                },
+                Base_Pilar_Support = Base_Pilar_Support
             };
         }
     }
@@ -447,7 +457,7 @@ public class Block : MapObject {
             if (b == null || b.Is_Air) {
                 continue;
             }
-            if (b.Base_Support) {
+            if (b.Base_Support || (direction == ConnectionData.Direction.Bottom && b.Base_Pilar_Support)) {
                 has_support = true;
                 return;
             }
@@ -478,7 +488,7 @@ public class Block : MapObject {
             if (b == null || b.Is_Air || blocks.Contains(b)) {
                 continue;
             }
-            if (b.Base_Support) {
+            if (b.Base_Support || (direction == ConnectionData.Direction.Bottom && b.Base_Pilar_Support)) {
                 has_support = true;
                 return;
             }

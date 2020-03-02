@@ -159,6 +159,22 @@ public class ConsoleManager : MonoBehaviour
                 ,(int)Player.Current.GameObject.transform.position.z, dist);
         });
 
+        commands.Add("dev_gear", (string[] arguments) => {
+            if (arguments.Length != 1) {
+                return "Invalid number of arguments";
+            }
+            if (Player.Current != null && !Player.Current.Inventory.Has_Items("dev_hammer", 1)) {
+                Player.Current.Inventory.Add(ItemPrototypes.Instance.Get_Tool("dev_hammer"));
+            }
+            if (Player.Current != null && !Player.Current.Inventory.Has_Items("dev_pickaxe", 1)) {
+                Player.Current.Inventory.Add(ItemPrototypes.Instance.Get_Tool("dev_pickaxe"));
+            }
+            if (Player.Current != null && !Player.Current.Inventory.Has_Items("dev_shovel", 1)) {
+                Player.Current.Inventory.Add(ItemPrototypes.Instance.Get_Tool("dev_shovel"));
+            }
+            return "";
+        });
+
         Update_Output();
         Panel.SetActive(false);
     }

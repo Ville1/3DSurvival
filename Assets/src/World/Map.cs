@@ -46,6 +46,8 @@ public class Map {
     private bool paused;
     private int chunks_processed;
     private List<Block> recent_blocks;
+    private Block remove_base_pilar_support;
+    private List<Block> remove_base_pilar_support_queue;
 
     private Map()
     {
@@ -75,6 +77,8 @@ public class Map {
         chunks_processed = 0;
         Current_State = State.Normal;
         recent_blocks = new List<Block>();
+        remove_base_pilar_support = null;
+        remove_base_pilar_support_queue = new List<Block>();
     }
 
     public static Map Instance
@@ -223,6 +227,7 @@ public class Map {
 
         Generate_Chunks();
         Load_Chunks();
+        Process_Base_Pilar_Support_Removal();
     }
 
     private void Generate_First_Loop()
@@ -627,6 +632,40 @@ public class Map {
         ).ToList();
     }
 
+    public void Remove_Base_Pilar_Support(Block block)
+    {
+        if(Current_State != State.Normal || remove_base_pilar_support == block || remove_base_pilar_support_queue.Contains(block)) {
+            return;
+        }
+        remove_base_pilar_support_queue.Add(block);
+    }
+
+    private void Process_Base_Pilar_Support_Removal()
+    {
+        Block top;
+        if (remove_base_pilar_support == null && remove_base_pilar_support_queue.Count != 0) {
+            remove_base_pilar_support = remove_base_pilar_support_queue[0];
+            remove_base_pilar_support_queue.RemoveAt(0);
+            top = Get_Block_At(remove_base_pilar_support.Coordinates.Shift(new Coordinates(0, 1, 0)));
+            if(top == null) {
+                remove_base_pilar_support = null;
+            } else {
+                remove_base_pilar_support = top;
+            }
+            return;
+        }
+        if(remove_base_pilar_support == null) {
+            return;
+        }
+        remove_base_pilar_support.Base_Pilar_Support = false;
+        top = Get_Block_At(remove_base_pilar_support.Coordinates.Shift(new Coordinates(0, 1, 0)));
+        if(top == null || !remove_base_pilar_support.Connections.Is_Connected_To(ConnectionData.Direction.Top, top.Connections)) {
+            remove_base_pilar_support = null;
+        } else {
+            remove_base_pilar_support = top;
+        }
+    }
+
     public bool Active
     {
         get {
@@ -677,6 +716,9 @@ public class Map {
         entities_to_be_added.Clear();
         entities_to_be_removed.Clear();
         recent_blocks.Clear();
+
+        remove_base_pilar_support = null;
+        remove_base_pilar_support_queue.Clear();
 
         active = false;
     }
