@@ -11,7 +11,7 @@
         Level = prototype.Level;
         Base_Efficiency = prototype.Base_Efficiency;
     }
-
+    
     public Tool(string name, string internal_name, int durability, float weight, float volyme, string ui_sprite, SpriteManager.SpriteType ui_sprite_type, ToolType type, int level, float efficiency) :
         base(name, internal_name, durability, weight, volyme, ui_sprite, ui_sprite_type)
     {

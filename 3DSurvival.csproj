@@ -129,6 +129,7 @@
     <Compile Include="Assets\src\World\BlockPrototypes.cs" />
     <Compile Include="Assets\src\World\Chunk.cs" />
     <Compile Include="Assets\src\World\CollisionBehaviour.cs" />
+    <Compile Include="Assets\src\World\ConnectionData.cs" />
     <Compile Include="Assets\src\World\Entity.cs" />
     <Compile Include="Assets\src\World\ItemPile.cs" />
     <Compile Include="Assets\src\World\Map.cs" />

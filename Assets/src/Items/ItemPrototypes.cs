@@ -73,4 +73,9 @@ public class ItemPrototypes
         }
         return new Tool(tool);
     }
+
+    public bool Is_Tool(string internal_name)
+    {
+        return prototypes.Exists(x => x is Tool && x.Internal_Name == internal_name);
+    }
 }

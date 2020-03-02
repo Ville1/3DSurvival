@@ -108,7 +108,9 @@ public class Chunk {
                 for (int y = 0; y < Size_Y; y++) {
                     int current_elevation = Temp_Data.Elevations[x - X_Start][z - Z_Start];
                     Block block = null;
-                    if (y <= current_elevation - 2) {
+                    if (y == 0) {
+                        block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get("bed_rock"), GameObject);
+                    } else if (y <= current_elevation - 2) {
                         block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get("rock"), GameObject);
                     } else if (y == current_elevation - 1) {
                         block = new Block(new Coordinates(x, y, z), BlockPrototypes.Instance.Get("dirt"), GameObject);

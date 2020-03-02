@@ -20,14 +20,7 @@
         current_id++;
         Change_To(prototype, prototype.Max_Durability);
     }
-
-    public Item(ItemSaveData data)
-    {
-        Id = current_id;
-        current_id++;
-        Change_To(ItemPrototypes.Instance.Get_Item(data.Internal_Name), data.Durability);
-    }
-
+    
     public Item(string name, string internal_name, int durability, float weight, float volyme, string ui_sprite, SpriteManager.SpriteType ui_sprite_type)
     {
         Name = name;
@@ -50,7 +43,7 @@
         }
     }
 
-    private void Change_To(Item prototype, float durability)
+    protected void Change_To(Item prototype, float durability)
     {
         Name = prototype.Name;
         Internal_Name = prototype.Internal_Name;

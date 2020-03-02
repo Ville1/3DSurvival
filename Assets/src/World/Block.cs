@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 public class Block : MapObject {
@@ -7,6 +9,10 @@ public class Block : MapObject {
     public static readonly string PREFAB_NAME = "Block";
     public static readonly string SLOPE_PREFAB_NAME = "Slope";
     public static readonly float UPDATE_INTERVAL = 30.0f;
+    public static readonly int UPDATE_STRUCTURAL_INTERGRITY_RANGE = 20;
+    public static readonly int UPDATE_STRUCTURAL_INTERGRITY_MAX_CALLS = 50;
+
+    public static bool Log_Diagnostics = true;
 
     public delegate void UpdateDelegate(float delta_time, Block block);
     public delegate void CreateDelegate(Block block);
@@ -57,16 +63,25 @@ public class Block : MapObject {
     public Dictionary<string, object> Persistent_Data { get; private set; }
     public UpdateDelegate Update_Action { get; private set; }
     public CreateDelegate Create_Action { get; private set; }
-    public bool Supports_Top { get; private set; }
+    public bool Supports_Top { get { return Connections != null ? Connections.Top : false; } }
     public bool Is_Air { get { return Internal_Name == BlockPrototypes.AIR_INTERNAL_NAME; } }
+    public ConnectionData Connections { get; private set; }
+    public bool Base_Support { get; private set; }
 
+    private ConnectionData last_connections;
     private GameObject crack_cube;
     private float update_cooldown;
+    private int update_structural_integrity_calls;
+    private string watch_title;
+    private Dictionary<string, Stopwatch> watches;
 
     public Block(Coordinates position, Block prototype, GameObject container, float? hp = null, bool is_preview = false) : base(prototype.Name, position.Vector, container, prototype.Prototype_Data, !prototype.Inactive_GameObject)
     {
         Id = current_id;
         current_id++;
+        //TODO: Move to Change_To?
+        Connections = new ConnectionData(prototype.Connections);
+
         Change_To(prototype, false, hp, is_preview);
 
         GameObject.name = string.Format("{0}#{1}_{2}", GAME_OBJECT_NAME_PREFIX, Id, Coordinates.Parse_Text(true, false));
@@ -90,7 +105,7 @@ public class Block : MapObject {
         float build_speed, Dictionary<string, int> dismantle_drops, Dictionary<string, int> building_materials, Dictionary<Skill.SkillId, int> dismantle_skills, Dictionary<Skill.SkillId, int> build_skills,
         Verb dismantle_verb, Dictionary<Tool.ToolType, int> tools_required_to_dismantle, Dictionary<Tool.ToolType, int> tools_required_to_build, BuildMenuManager.TabType? build_menu_tab, float harvest_speed,
         string after_harvest_prototype, Dictionary<string, int> harvest_drops, Dictionary<Skill.SkillId, int> skills_required_to_harvest, Dictionary<Tool.ToolType, int> tools_required_to_harvest, Verb harvest_verb,
-        CreateDelegate create_action, UpdateDelegate update_action, bool supports_top) : 
+        CreateDelegate create_action, UpdateDelegate update_action, ConnectionData connections, bool base_support) : 
         base(name, string.IsNullOrEmpty(model_name) ? (internal_name.Contains("_slope") ? SLOPE_PREFAB_NAME : PREFAB_NAME) : null, string.IsNullOrEmpty(model_name) ? material : null, MaterialManager.MaterialType.Block, model_name)
     {
         Id = -1;
@@ -130,7 +145,9 @@ public class Block : MapObject {
         Update_Action = update_action;
         update_cooldown = -1.0f;
         Create_Action = create_action;
-        Supports_Top = supports_top;
+        Connections = new ConnectionData(connections);
+        last_connections = new ConnectionData(connections);
+        Base_Support = base_support;
     }
 
     public Coordinates Coordinates
@@ -196,7 +213,9 @@ public class Block : MapObject {
         update_cooldown = Update_Action != null ? (RNG.Instance.Next(0, 100) * 0.01f) * UPDATE_INTERVAL : 0.0f;
         Persistent_Data = Persistent_Data != null ? Persistent_Data : new Dictionary<string, object>();
         Create_Action = prototype.Create_Action;
-        Supports_Top = prototype.Supports_Top;
+        last_connections = new ConnectionData(Connections);
+        Connections = new ConnectionData(prototype.Connections);
+        Base_Support = prototype.Base_Support;
 
         if (changed_prefab) {
             Change_Prefab();
@@ -270,6 +289,7 @@ public class Block : MapObject {
                 ItemPile pile = new ItemPile(Position, ItemPile.Prototype, Map.Instance.Entity_Container, new Inventory(Materials_Required_To_Build));
             }
             Change_To(BlockPrototypes.Instance.Air);
+            Update_Structural_Integrity();
         }
         Update_Material();
         return broke;
@@ -369,6 +389,153 @@ public class Block : MapObject {
                 }
             };
         }
+    }
+
+    public void Debug_Tag(string tag)
+    {
+        if(Name.StartsWith(string.Format("{0}_", tag))) {
+            return;
+        }
+        CustomLogger.Instance.Debug(string.Format("{0} -> {1}", GameObject.name, tag));
+        Name = string.Format("{0}_{1}", tag, Name);
+    }
+    
+    public void Update_Structural_Integrity()
+    {
+        Start_Stopwatch_Logging("STUCTURAL INTEGRITY");
+        Start_Stopwatch("Update_Structural_Integrity");
+        update_structural_integrity_calls = 0;
+        List<Block> connected_blocks = new List<Block>();
+        foreach (ConnectionData.Direction direction in Connections.Lost_Connetions(last_connections)) {
+            Start_Stopwatch("Map.Instance.Get_Block_At");
+            Block block = Map.Instance.Get_Block_At(Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
+            Stop_Stopwatch("Map.Instance.Get_Block_At");
+            if (block == null || block.Is_Air || block.Base_Support || connected_blocks.Contains(block)) {
+                continue;
+            }
+            List<Block> blocks = new List<Block>();
+            bool has_support = false;
+            Stop_Stopwatch("Update_Structural_Integrity");
+            Check_Connected_Blocks(block, ref has_support, ref blocks, connected_blocks);
+            Start_Stopwatch("Update_Structural_Integrity");
+            if (!has_support) {
+                foreach(Block b in blocks) {
+                    b.Change_To(BlockPrototypes.Instance.Air);
+                }
+            } else {
+                foreach (Block b in blocks) {
+                    connected_blocks.Add(b);
+                }
+            }
+        }
+        Stop_Stopwatch("Update_Structural_Integrity");
+        Print_Stopwatches();
+    }
+
+    private void Check_Connected_Blocks(Block block, ref bool has_support, ref List<Block> blocks, List<Block> connected_blocks)
+    {
+        Start_Stopwatch("Check_Connected_Blocks");
+        blocks.Add(block);
+        if (connected_blocks.Contains(block)) {
+            has_support = true;
+            return;
+        }
+        foreach (ConnectionData.Direction direction in block.Connections.All) {
+            Start_Stopwatch("Map.Instance.Get_Block_At");
+            Block b = Map.Instance.Get_Block_At(block.Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
+            Stop_Stopwatch("Map.Instance.Get_Block_At");
+            if (b == null || b.Is_Air) {
+                continue;
+            }
+            if (b.Base_Support) {
+                has_support = true;
+                return;
+            }
+            Stop_Stopwatch("Check_Connected_Blocks");
+            Check_Connected_Blocks_Recursive(b, 0, ref has_support, ref blocks, connected_blocks);
+            Start_Stopwatch("Check_Connected_Blocks");
+        }
+        Stop_Stopwatch("Check_Connected_Blocks");
+    }
+
+    private void Check_Connected_Blocks_Recursive(Block block, int range, ref bool has_support, ref List<Block> blocks, List<Block> connected_blocks)
+    {
+        Start_Stopwatch("Check_Connected_Blocks_Recursive");
+        if (has_support) {
+            return;
+        }
+        update_structural_integrity_calls++;
+        blocks.Add(block);
+        range++;
+        if(range == UPDATE_STRUCTURAL_INTERGRITY_RANGE || connected_blocks.Contains(block) || update_structural_integrity_calls == UPDATE_STRUCTURAL_INTERGRITY_MAX_CALLS) {
+            has_support = true;
+            return;
+        }
+        foreach (ConnectionData.Direction direction in block.Connections.All) {
+            Start_Stopwatch("Map.Instance.Get_Block_At");
+            Block b = Map.Instance.Get_Block_At(block.Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
+            Stop_Stopwatch("Map.Instance.Get_Block_At");
+            if (b == null || b.Is_Air || blocks.Contains(b)) {
+                continue;
+            }
+            if (b.Base_Support) {
+                has_support = true;
+                return;
+            }
+            Check_Connected_Blocks_Recursive(b, range, ref has_support, ref blocks, connected_blocks);
+        }
+        Stop_Stopwatch("Check_Connected_Blocks_Recursive");
+    }
+    
+    private void Start_Stopwatch_Logging(string title)
+    {
+        if (!Log_Diagnostics) {
+            return;
+        }
+        watch_title = title;
+        CustomLogger.Instance.Debug(string.Format("--- {0} ---", watch_title));
+        watches = new Dictionary<string, Stopwatch>();
+    }
+
+    private void Start_Stopwatch(string name)
+    {
+        if (!Log_Diagnostics) {
+            return;
+        }
+        if (!watches.ContainsKey(name)) {
+            watches.Add(name, Stopwatch.StartNew());
+        } else {
+            watches[name].Start();
+        }
+    }
+
+    private void Stop_Stopwatch(string name)
+    {
+        if (!Log_Diagnostics) {
+            return;
+        }
+        if (watches.ContainsKey(name)) {
+            watches[name].Stop();
+        }
+    }
+
+    private void Print_Stopwatches()
+    {
+        if (!Log_Diagnostics) {
+            return;
+        }
+        foreach (KeyValuePair<string, Stopwatch> pair in watches) {
+            pair.Value.Stop();
+        }
+        long total = 0;
+        foreach (KeyValuePair<string, Stopwatch> pair in watches) {
+            CustomLogger.Instance.Debug(string.Format("{0}: {1}ms", pair.Key, pair.Value.ElapsedMilliseconds));
+            total += pair.Value.ElapsedMilliseconds;
+        }
+        watches.Clear();
+        CustomLogger.Instance.Debug(string.Format("TOTAL: {0}ms", total));
+        CustomLogger.Instance.Debug(string.Format("--- {0} ---", watch_title));
+        watch_title = null;
     }
 
     public new void Delete()

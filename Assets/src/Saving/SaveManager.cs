@@ -112,7 +112,7 @@ public class SaveManager
         } else {
             List<Item> items = new List<Item>();
             foreach(ItemSaveData item_data in data.Player.Items) {
-                items.Add(new Item(item_data));
+                items.Add(ItemPrototypes.Instance.Is_Tool(item_data.Internal_Name) ? ItemPrototypes.Instance.Get_Tool(item_data.Internal_Name) : ItemPrototypes.Instance.Get_Item(item_data.Internal_Name));
             }
             return items;
         }

@@ -45,6 +45,7 @@ public class Map {
     private float loop_time_3;
     private bool paused;
     private int chunks_processed;
+    private List<Block> recent_blocks;
 
     private Map()
     {
@@ -73,6 +74,7 @@ public class Map {
         paused = false;
         chunks_processed = 0;
         Current_State = State.Normal;
+        recent_blocks = new List<Block>();
     }
 
     public static Map Instance
@@ -555,7 +557,15 @@ public class Map {
 
     public Block Get_Block_At(Coordinates coordinates)
     {
-        return blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
+        Block block = recent_blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
+        if(block != null) {
+            return block;
+        }
+        block = blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
+        if(block != null) {
+            recent_blocks.Add(block);
+        }
+        return block;
     }
 
     public List<Block> Get_Blocks_In_Chuck_And_Adjacent_Chunks(Chunk chunk)
@@ -584,6 +594,19 @@ public class Map {
             (x.X == chunk.X && x.Z + 1 == chunk.Z) ||
             (x.X == chunk.X && x.Z - 1 == chunk.Z)
         ).ToList(); ;
+    }
+
+    public List<Block> Get_Adjacent_Blocks(Block block)
+    {
+        return blocks.Where(x =>
+            !x.Coordinates.Equals(block.Coordinates) && (
+            (x.Coordinates.X + 1 == block.Coordinates.X && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X - 1 == block.Coordinates.X && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y + 1 == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y - 1 == block.Coordinates.Y && x.Coordinates.Z == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z + 1 == block.Coordinates.Z) ||
+            (x.Coordinates.X == block.Coordinates.X && x.Coordinates.Y == block.Coordinates.Y && x.Coordinates.Z - 1 == block.Coordinates.Z))
+        ).ToList();
     }
 
     //TODO: this
@@ -653,6 +676,7 @@ public class Map {
         entities.Clear();
         entities_to_be_added.Clear();
         entities_to_be_removed.Clear();
+        recent_blocks.Clear();
 
         active = false;
     }
