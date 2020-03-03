@@ -172,6 +172,9 @@ public class ConsoleManager : MonoBehaviour
             if (Player.Current != null && !Player.Current.Inventory.Has_Items("dev_shovel", 1)) {
                 Player.Current.Inventory.Add(ItemPrototypes.Instance.Get_Tool("dev_shovel"));
             }
+            if (Player.Current != null && !Player.Current.Inventory.Has_Items("dev_axe", 1)) {
+                Player.Current.Inventory.Add(ItemPrototypes.Instance.Get_Tool("dev_axe"));
+            }
             return "";
         });
 

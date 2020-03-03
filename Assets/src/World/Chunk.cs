@@ -12,6 +12,7 @@ public class Chunk {
     public int X { get; private set; }
     public int Z { get; private set; }
     public List<Block> Blocks { get; private set; }
+    public List<BlockGroup> Block_Groups { get; private set; }
     public GameObject GameObject { get; private set; }
     public int Average_Elevation { get; private set; }
     public bool Simple_Elevation { get; private set; }
@@ -28,6 +29,7 @@ public class Chunk {
         X = x;
         Z = z;
         Blocks = new List<Block>();
+        Block_Groups = new List<BlockGroup>();
         GameObject = new GameObject(string.Format("Chunk_({0},{1})#{2}", X, Z, Id));
         GameObject.transform.parent = Map.Instance.Block_Container.transform;
         GameObject.SetActive(true);
@@ -43,6 +45,7 @@ public class Chunk {
         X = data.X;
         Z = data.Z;
         Blocks = new List<Block>();
+        Block_Groups = new List<BlockGroup>();
         GameObject = new GameObject(string.Format("Chunk_({0},{1})#{2}", X, Z, Id));
         GameObject.transform.parent = Map.Instance.Block_Container.transform;
         GameObject.SetActive(true);
@@ -51,6 +54,11 @@ public class Chunk {
         foreach(BlockSaveData block_data in data.Blocks) {
             Block block = Block.Load(block_data, GameObject);
             Blocks.Add(block);
+        }
+
+        foreach(BlockGroupSaveData group_data in data.Block_Groups) {
+            BlockGroup group = BlockGroup.Load(group_data, this);
+            Block_Groups.Add(group);
         }
     }
 
@@ -476,6 +484,8 @@ public class Chunk {
 
     private void Generate_Tree(Block start)
     {
+        BlockGroup tree = new BlockGroup("Tree", BlockGroup.GroupType.Tree);
+        tree.Add(start);
         int max_height = Size_Y - start.Coordinates.Y;
         if(max_height <= 1) {
             return;
@@ -494,20 +504,28 @@ public class Chunk {
             } else {
                 Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start][h].Change_To(BlockPrototypes.Instance.Get("leaves"));
             }
+            tree.Add(Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start][h]);
         }
         int top = start.Coordinates.Y + height - 1;
         if (start.Coordinates.X - X_Start - 1 >= 0 && Temp_Data.All_Blocks[start.Coordinates.X - X_Start - 1][start.Coordinates.Z - Z_Start][top].Is_Air) {
             Temp_Data.All_Blocks[start.Coordinates.X - X_Start - 1][start.Coordinates.Z - Z_Start][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
+            tree.Add(Temp_Data.All_Blocks[start.Coordinates.X - X_Start - 1][start.Coordinates.Z - Z_Start][top]);
         }
         if (start.Coordinates.Z - Z_Start - 1 >= 0 && Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start - 1][top].Is_Air) {
             Temp_Data.All_Blocks[start.Coordinates.X - X_Start ][start.Coordinates.Z - Z_Start - 1][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
+            tree.Add(Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start - 1][top]);
         }
         if (start.Coordinates.X - X_Start + 1 < SIZE_X && Temp_Data.All_Blocks[start.Coordinates.X - X_Start + 1][start.Coordinates.Z - Z_Start][top].Is_Air) {
             Temp_Data.All_Blocks[start.Coordinates.X - X_Start + 1][start.Coordinates.Z - Z_Start][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
+            tree.Add(Temp_Data.All_Blocks[start.Coordinates.X - X_Start + 1][start.Coordinates.Z - Z_Start][top]);
         }
         if (start.Coordinates.Z - Z_Start + 1 < SIZE_Z && Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start + 1][top].Is_Air) {
             Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start + 1][top].Change_To(BlockPrototypes.Instance.Get("leaves"));
+            tree.Add(Temp_Data.All_Blocks[start.Coordinates.X - X_Start][start.Coordinates.Z - Z_Start + 1][top]);
         }
+        //TODO: grass end up in here? Because index errors?
+        tree.Blocks = tree.Blocks.Where(x => x.Internal_Name == "trunk" || x.Internal_Name == "leaves").ToList();
+        Block_Groups.Add(tree);
     }
 
     public void End_Generation()
@@ -524,6 +542,10 @@ public class Chunk {
         data.Blocks = new List<BlockSaveData>();
         foreach(Block block in Blocks) {
             data.Blocks.Add(block.Save_Data);
+        }
+        data.Block_Groups = new List<BlockGroupSaveData>();
+        foreach (BlockGroup group in Block_Groups) {
+            data.Block_Groups.Add(group.Save_Data);
         }
 
         SaveManager.Instance.Add(data);

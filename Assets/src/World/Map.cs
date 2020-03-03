@@ -390,6 +390,7 @@ public class Map {
         Start_Delete();
         Chunk.Reset_Current_Id();
         Block.Reset_Current_Id();
+        BlockGroup.Reset_Current_Id();
         Current_State = State.Loading;
         chunks_processed = 0;
         ProgressBarManager.Instance.Active = true;

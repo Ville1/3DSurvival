@@ -99,6 +99,7 @@
     <Compile Include="Assets\src\ModelManager.cs" />
     <Compile Include="Assets\src\PrefabManager.cs" />
     <Compile Include="Assets\src\RNG.cs" />
+    <Compile Include="Assets\src\Saving\BlockGroupSaveData.cs" />
     <Compile Include="Assets\src\Saving\BlockSaveData.cs" />
     <Compile Include="Assets\src\Saving\ChunkSaveData.cs" />
     <Compile Include="Assets\src\Saving\CoordinatesSaveData.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Assets\src\UI\TooltipManager.cs" />
     <Compile Include="Assets\src\Verb.cs" />
     <Compile Include="Assets\src\World\Block.cs" />
+    <Compile Include="Assets\src\World\BlockGroup.cs" />
     <Compile Include="Assets\src\World\BlockPrototypes.cs" />
     <Compile Include="Assets\src\World\Chunk.cs" />
     <Compile Include="Assets\src\World\CollisionBehaviour.cs" />

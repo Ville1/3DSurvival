@@ -68,6 +68,8 @@ public class Block : MapObject {
     public ConnectionData Connections { get; private set; }
     public bool Base_Support { get; private set; }
     public bool Base_Pilar_Support { get; set; }
+    public List<BlockGroup> Groups { get; private set; }
+    public bool Destroy_Group_When_Removed { get; private set; }
 
     private ConnectionData last_connections;
     private GameObject crack_cube;
@@ -100,6 +102,7 @@ public class Block : MapObject {
         if(Create_Action != null) {
             Create_Action(this);
         }
+        Groups = new List<BlockGroup>();
     }
 
     //TODO: internal_name.Contains("_slope")
@@ -107,7 +110,7 @@ public class Block : MapObject {
         float build_speed, Dictionary<string, int> dismantle_drops, Dictionary<string, int> building_materials, Dictionary<Skill.SkillId, int> dismantle_skills, Dictionary<Skill.SkillId, int> build_skills,
         Verb dismantle_verb, Dictionary<Tool.ToolType, int> tools_required_to_dismantle, Dictionary<Tool.ToolType, int> tools_required_to_build, BuildMenuManager.TabType? build_menu_tab, float harvest_speed,
         string after_harvest_prototype, Dictionary<string, int> harvest_drops, Dictionary<Skill.SkillId, int> skills_required_to_harvest, Dictionary<Tool.ToolType, int> tools_required_to_harvest, Verb harvest_verb,
-        CreateDelegate create_action, UpdateDelegate update_action, ConnectionData connections, bool base_support) : 
+        CreateDelegate create_action, UpdateDelegate update_action, ConnectionData connections, bool base_support, bool destroy_group_when_removed) : 
         base(name, string.IsNullOrEmpty(model_name) ? (internal_name.Contains("_slope") ? SLOPE_PREFAB_NAME : PREFAB_NAME) : null, string.IsNullOrEmpty(model_name) ? material : null, MaterialManager.MaterialType.Block, model_name)
     {
         Id = -1;
@@ -151,6 +154,8 @@ public class Block : MapObject {
         last_connections = new ConnectionData(connections);
         Base_Support = base_support;
         Base_Pilar_Support = false;
+        Destroy_Group_When_Removed = destroy_group_when_removed;
+        Groups = new List<BlockGroup>();
     }
 
     public Coordinates Coordinates
@@ -219,6 +224,7 @@ public class Block : MapObject {
         last_connections = new ConnectionData(Connections);
         Connections = new ConnectionData(prototype.Connections);
         Base_Support = prototype.Base_Support;
+        Destroy_Group_When_Removed = prototype.Destroy_Group_When_Removed;
 
         if (changed_prefab) {
             Change_Prefab();
@@ -282,7 +288,7 @@ public class Block : MapObject {
         GameObject.name = string.Format("{0}#{1}_{2}", GAME_OBJECT_NAME_PREFIX, Id, Coordinates.Parse_Text(true, false));
     }
 
-    public bool Deal_Damage(float amount, bool dismantle)
+    public bool Deal_Damage(float amount, bool dismantle, bool ignore_groups = false)
     {
         HP = Mathf.Max(0.0f, HP - amount);
         if (dismantle) {
@@ -291,10 +297,21 @@ public class Block : MapObject {
         bool broke = HP == 0.0f;
         if (broke) {
             //TODO: 0.95f
-            if (Completed && HP_Dismantled >= 0.95f * MAX_HP && Dismantle_Drops.Count != 0) {
+            bool dismantled = HP_Dismantled >= 0.95f * MAX_HP;
+            if (Completed && dismantled && Dismantle_Drops.Count != 0) {
                 ItemPile pile = new ItemPile(Position, ItemPile.Prototype, Map.Instance.Entity_Container, new Inventory(Dismantle_Drops));
             } else if(!Completed && HP_Dismantled >= 0.95f * HP_Built && Materials_Required_To_Build.Count != 0) {
                 ItemPile pile = new ItemPile(Position, ItemPile.Prototype, Map.Instance.Entity_Container, new Inventory(Materials_Required_To_Build));
+            }
+            if (Destroy_Group_When_Removed && !ignore_groups) {
+                foreach(BlockGroup group in Groups) {
+                    foreach(Block block in group.Blocks) {
+                        if(block.Id == Id) {
+                            continue;
+                        }
+                        block.Deal_Damage(float.MaxValue, dismantled, true);
+                    }
+                }
             }
             Change_To(BlockPrototypes.Instance.Air);
             Update_Structural_Integrity();

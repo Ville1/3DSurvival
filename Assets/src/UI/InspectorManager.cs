@@ -63,7 +63,7 @@ public class InspectorManager : MonoBehaviour
             Image.sprite = SpriteManager.Instance.Get_Sprite(block.UI_Sprite, block.UI_Sprite_Type);
             Block_Coordinates_Text.text = block.Coordinates.Parse_Text(true, true);
             //Block_HP_Text.text = string.Format("HP: {0} / {1}", Helper.Float_To_String(block.HP, 0), block.MAX_HP);
-            Block_HP_Text.text = block.Base_Pilar_Support ? "Base_Pilar_Support" : "";
+            Block_HP_Text.text = block.Groups.Count != 0 ? block.Groups[0].Name + " #" + block.Groups[0].Id : "";
 
             Dictionary<string, string> actions = new Dictionary<string, string>();
             List<string> possible_actions = new List<string>();

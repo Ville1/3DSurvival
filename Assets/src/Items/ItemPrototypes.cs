@@ -29,6 +29,7 @@ public class ItemPrototypes
         prototypes.Add(new Tool("Dev hammer", "dev_hammer", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Hammer, 999, 50.0f));
         prototypes.Add(new Tool("Dev pickaxe", "dev_pickaxe", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Pickaxe, 999, 50.0f));
         prototypes.Add(new Tool("Dev shovel", "dev_shovel", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Shovel, 999, 50.0f));
+        prototypes.Add(new Tool("Dev axe", "dev_axe", -1, 0.0f, 0.0f, "placeholder", SpriteManager.SpriteType.Item, Tool.ToolType.Axe, 999, 50.0f));
     }
 
     public static ItemPrototypes Instance

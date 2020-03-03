@@ -8,4 +8,5 @@ public class ChunkSaveData {
     public int Z;
 
     public List<BlockSaveData> Blocks;
+    public List<BlockGroupSaveData> Block_Groups;
 }
