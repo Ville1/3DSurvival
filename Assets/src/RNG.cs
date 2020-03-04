@@ -22,6 +22,11 @@ public class RNG
         }
     }
 
+    public void Set_Seed(int seed)
+    {
+        generator = new System.Random(seed);
+    }
+
     public int Next()
     {
         return generator.Next();

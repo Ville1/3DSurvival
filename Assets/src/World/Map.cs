@@ -11,8 +11,8 @@ public class Map {
     private static bool PRINT_DIAGNOSTICS = true;
     
     public int Size_Y { get; private set; }
-    public int Chunk_Size_X { get; private set; }
-    public int Chunk_Size_Z { get; private set; }
+    public int Chunk_Generation_Radius_Size_X { get; private set; }
+    public int Chunk_Generation_Radius_Size_Z { get; private set; }
     public int Initial_Chunk_Size_X { get; private set; }
     public int Initial_Chunk_Size_Z { get; private set; }
     public GameObject Entity_Container { get; private set; }
@@ -137,7 +137,7 @@ public class Map {
         }
     }
 
-    public void Generate_New(int chunk_size_x, int size_y, int chunk_size_z, int initial_chunk_size_x, int initial_chunk_size_z, bool limited_generation, bool simple_elevation, bool structural_integrity_enabled)
+    public void Generate_New(int size_y, int chunck_count_x, int chunk_count_z, bool limited_generation, bool simple_elevation, bool structural_integrity_enabled)
     {
         if (PRINT_DIAGNOSTICS) {
             stopwatch = Stopwatch.StartNew();
@@ -153,10 +153,10 @@ public class Map {
         loop_time_3 = 0.0f;
 
         Size_Y = size_y;
-        Chunk_Size_X = chunk_size_x;
-        Chunk_Size_Z = chunk_size_z;
-        Initial_Chunk_Size_X = initial_chunk_size_x;
-        Initial_Chunk_Size_Z = initial_chunk_size_z;
+        Chunk_Generation_Radius_Size_X = Mathf.RoundToInt((Rendering_Distance * 3.0f) / Chunk.SIZE_X);
+        Chunk_Generation_Radius_Size_Z = Mathf.RoundToInt((Rendering_Distance * 3.0f) / Chunk.SIZE_Z);
+        Initial_Chunk_Size_X = chunck_count_x;
+        Initial_Chunk_Size_Z = chunk_count_z;
         Limited_Generation = limited_generation;
         Simple_Elevation = simple_elevation;
         Structural_Integrity_Enabled = structural_integrity_enabled;
@@ -485,8 +485,8 @@ public class Map {
         }
         int player_x = (int)Player.Current.Position.x / Chunk.SIZE_X;
         int player_z = (int)Player.Current.Position.z / Chunk.SIZE_Z;
-        for (int x = player_x - (Chunk_Size_X / 2); x < player_x + (Chunk_Size_X / 2); x++) {
-            for (int z = player_z - (Chunk_Size_Z / 2); z < player_z + (Chunk_Size_Z / 2); z++) {
+        for (int x = player_x - (Chunk_Generation_Radius_Size_X / 2); x < player_x + (Chunk_Generation_Radius_Size_X / 2); x++) {
+            for (int z = player_z - (Chunk_Generation_Radius_Size_Z / 2); z < player_z + (Chunk_Generation_Radius_Size_Z / 2); z++) {
                 Chunk chunk = chunks.FirstOrDefault(c => c.X == x && c.Z == z);
                 if(chunk != null) {
                     continue;

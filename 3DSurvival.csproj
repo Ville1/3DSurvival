@@ -123,6 +123,7 @@
     <Compile Include="Assets\src\UI\MenuManager.cs" />
     <Compile Include="Assets\src\UI\MessageManager.cs" />
     <Compile Include="Assets\src\UI\MouseManager.cs" />
+    <Compile Include="Assets\src\UI\NewGameGUIManager.cs" />
     <Compile Include="Assets\src\UI\PlayerGUIManager.cs" />
     <Compile Include="Assets\src\UI\ProgressBarManager.cs" />
     <Compile Include="Assets\src\UI\SaveGUIManager.cs" />

@@ -34,7 +34,7 @@ public class MouseManager : MonoBehaviour
     private void Update()
     {
         Show_Cursor = BuildMenuManager.Instance.Active || CraftingMenuManager.Instance.Active || InventoryGUIManager.Instance.Active || MainMenuManager.Instance.Active || SaveGUIManager.Instance.Active
-            || ConfirmationDialogManager.Instance.Active || LoadGUIManager.Instance.Active || !Map.Instance.Active || Map.Instance.Paused;
+            || ConfirmationDialogManager.Instance.Active || LoadGUIManager.Instance.Active || NewGameGUIManager.Instance.Active || !Map.Instance.Active || Map.Instance.Paused;
         if (!Show_Cursor) {
             CameraManager.Instance.Rotate_Camera(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
         }
