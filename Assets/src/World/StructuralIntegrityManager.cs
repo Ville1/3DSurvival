@@ -2,8 +2,8 @@
 using System.Linq;
 
 public class StructuralIntegrityManager {
-    public static readonly float COOLDOWN = 1.0f;
-    public static readonly int MAX_UPDATES = 100;
+    public static readonly float COOLDOWN = 0.25f;
+    public static readonly int MAX_UPDATES = 1000;
 
     private Map map;
 
@@ -89,6 +89,12 @@ public class StructuralIntegrityManager {
             }
             current_lump.Add(connected_block);
             check_next.Add(connected_block);
+        }
+        current_update++;
+        if(current_update == MAX_UPDATES) {
+            CustomLogger.Instance.Warning("Max updates reached");
+            last_stable = current_lump.Select(x => x.Id).ToList();
+            current_root = null;
         }
     }
 }

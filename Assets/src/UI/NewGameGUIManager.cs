@@ -82,7 +82,7 @@ public class NewGameGUIManager : MonoBehaviour {
     private void Initialize()
     {
         Seed_Input.text = Guid.NewGuid().GetHashCode().ToString();
-        SI_Toggle.isOn = false;
+        SI_Toggle.isOn = true;
         Infinite_Generation_Toggle.isOn = false;
         Dimensions_Container.SetActive(true);
         Y_Input.text = DEFAULT_HEIGHT.ToString();

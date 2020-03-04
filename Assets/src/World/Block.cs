@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 
 public class Block : MapObject {
@@ -430,7 +431,7 @@ public class Block : MapObject {
         }
         List<Block> connected_blocks = new List<Block>();
         foreach (ConnectionData.Direction direction in Connections.Lost_Connetions(last_connections)) {
-            Block block = Map.Instance.Get_Block_At(Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
+            Block block = Adjacent_Block_Search(Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
             if (block == null || block.Is_Air || block.Base_Support || connected_blocks.Contains(block)) {
                 continue;
             }
@@ -442,12 +443,32 @@ public class Block : MapObject {
     {
         List<Block> list = new List<Block>();
         foreach (ConnectionData.Direction direction in Connections.All) {
-            Block b = Map.Instance.Get_Block_At(Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
+            Block b = Adjacent_Block_Search(Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
             if(b != null && Connections.Is_Connected_To(direction, b.Connections)) {
                 list.Add(b);
             }
         }
         return list;
+    }
+
+    private Block Adjacent_Block_Search(Coordinates coordinates)
+    {
+        Block block = Chunk.Blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
+        if(block != null) {
+            return block;
+        }
+        List<Chunk> adjacent_chunks = Map.Instance.Get_Adjacent_Chunks(Chunk);
+        foreach(Chunk chunk in adjacent_chunks) {
+            if(chunk.Id == Chunk.Id) {
+                continue;
+            }
+            block = chunk.Blocks.FirstOrDefault(x => x.Coordinates.Equals(coordinates));
+            if(block != null) {
+                return block;
+            }
+        }
+        CustomLogger.Instance.Warning("Chunk search failed");
+        return Map.Instance.Get_Block_At(coordinates);
     }
     
     private void Start_Stopwatch_Logging(string title)

@@ -53,6 +53,7 @@ public class Chunk {
 
         foreach(BlockSaveData block_data in data.Blocks) {
             Block block = Block.Load(block_data, GameObject);
+            block.Chunk = this;
             Blocks.Add(block);
         }
 

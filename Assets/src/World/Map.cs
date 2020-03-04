@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
@@ -615,6 +616,11 @@ public class Map {
         return b;
     }
 
+    /// <summary>
+    /// Contains param chunk
+    /// </summary>
+    /// <param name="chunk"></param>
+    /// <returns></returns>
     public List<Chunk> Get_Adjacent_Chunks(Chunk chunk)
     {
         return chunks.Where(x =>
@@ -626,6 +632,7 @@ public class Map {
         ).ToList(); ;
     }
 
+    [Obsolete("Use Block's Adjacent_Block_Search")]
     public List<Block> Get_Adjacent_Blocks(Block block)
     {
         return blocks.Where(x =>
