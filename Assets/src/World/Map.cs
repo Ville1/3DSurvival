@@ -22,6 +22,7 @@ public class Map {
     public bool Limited_Generation { get; private set; }
     public bool Simple_Elevation { get; private set; }
     public bool Structural_Integrity_Enabled { get; private set; }
+    public StructuralIntegrityManager Structural_Integrity_Manager { get; private set; }
 
     private GameObject game_object;
     private List<Block> blocks;
@@ -85,6 +86,7 @@ public class Map {
         remove_base_pilar_support_queue = new List<Block>();
         deleting_old = false;
         entities_deleted = false;
+        Structural_Integrity_Manager = new StructuralIntegrityManager(this);
     }
 
     public static Map Instance
@@ -158,6 +160,7 @@ public class Map {
         Limited_Generation = limited_generation;
         Simple_Elevation = simple_elevation;
         Structural_Integrity_Enabled = structural_integrity_enabled;
+        Structural_Integrity_Manager = new StructuralIntegrityManager(this);
 
         Current_State = State.Generating;
         ProgressBarManager.Instance.Active = true;
@@ -239,6 +242,7 @@ public class Map {
         Generate_Chunks();
         Load_Chunks();
         Process_Base_Pilar_Support_Removal();
+        Structural_Integrity_Manager.Update(delta_time + stopwatch.ElapsedMilliseconds * 0.001f);
     }
 
     private void Generate_First_Loop()

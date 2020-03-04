@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
@@ -9,8 +8,6 @@ public class Block : MapObject {
     public static readonly string PREFAB_NAME = "Block";
     public static readonly string SLOPE_PREFAB_NAME = "Slope";
     public static readonly float UPDATE_INTERVAL = 30.0f;
-    public static readonly int UPDATE_STRUCTURAL_INTERGRITY_RANGE = 20;
-    public static readonly int UPDATE_STRUCTURAL_INTERGRITY_MAX_CALLS = 50;
 
     public static bool Log_Diagnostics = true;
 
@@ -74,7 +71,6 @@ public class Block : MapObject {
     private ConnectionData last_connections;
     private GameObject crack_cube;
     private float update_cooldown;
-    private int update_structural_integrity_calls;
     private string watch_title;
     private Dictionary<string, Stopwatch> watches;
 
@@ -432,89 +428,26 @@ public class Block : MapObject {
         if (!Map.Instance.Structural_Integrity_Enabled) {
             return;
         }
-        Start_Stopwatch_Logging("STUCTURAL INTEGRITY");
-        Start_Stopwatch("Update_Structural_Integrity");
-        update_structural_integrity_calls = 0;
         List<Block> connected_blocks = new List<Block>();
         foreach (ConnectionData.Direction direction in Connections.Lost_Connetions(last_connections)) {
-            Start_Stopwatch("Map.Instance.Get_Block_At");
             Block block = Map.Instance.Get_Block_At(Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
-            Stop_Stopwatch("Map.Instance.Get_Block_At");
             if (block == null || block.Is_Air || block.Base_Support || connected_blocks.Contains(block)) {
                 continue;
             }
-            List<Block> blocks = new List<Block>();
-            bool has_support = false;
-            Stop_Stopwatch("Update_Structural_Integrity");
-            Check_Connected_Blocks(block, ref has_support, ref blocks, connected_blocks);
-            Start_Stopwatch("Update_Structural_Integrity");
-            if (!has_support) {
-                foreach(Block b in blocks) {
-                    b.Change_To(BlockPrototypes.Instance.Air);
-                }
-            } else {
-                foreach (Block b in blocks) {
-                    connected_blocks.Add(b);
-                }
-            }
+            Map.Instance.Structural_Integrity_Manager.Check(block);
         }
-        Stop_Stopwatch("Update_Structural_Integrity");
-        Print_Stopwatches();
     }
 
-    private void Check_Connected_Blocks(Block block, ref bool has_support, ref List<Block> blocks, List<Block> connected_blocks)
+    public List<Block> Get_Connected_Blocks()
     {
-        Start_Stopwatch("Check_Connected_Blocks");
-        blocks.Add(block);
-        if (connected_blocks.Contains(block)) {
-            has_support = true;
-            return;
-        }
-        foreach (ConnectionData.Direction direction in block.Connections.All) {
-            Start_Stopwatch("Map.Instance.Get_Block_At");
-            Block b = Map.Instance.Get_Block_At(block.Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
-            Stop_Stopwatch("Map.Instance.Get_Block_At");
-            if (b == null || b.Is_Air) {
-                continue;
+        List<Block> list = new List<Block>();
+        foreach (ConnectionData.Direction direction in Connections.All) {
+            Block b = Map.Instance.Get_Block_At(Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
+            if(b != null && Connections.Is_Connected_To(direction, b.Connections)) {
+                list.Add(b);
             }
-            if (b.Base_Support || (direction == ConnectionData.Direction.Bottom && b.Base_Pilar_Support)) {
-                has_support = true;
-                return;
-            }
-            Stop_Stopwatch("Check_Connected_Blocks");
-            Check_Connected_Blocks_Recursive(b, 0, ref has_support, ref blocks, connected_blocks);
-            Start_Stopwatch("Check_Connected_Blocks");
         }
-        Stop_Stopwatch("Check_Connected_Blocks");
-    }
-
-    private void Check_Connected_Blocks_Recursive(Block block, int range, ref bool has_support, ref List<Block> blocks, List<Block> connected_blocks)
-    {
-        Start_Stopwatch("Check_Connected_Blocks_Recursive");
-        if (has_support) {
-            return;
-        }
-        update_structural_integrity_calls++;
-        blocks.Add(block);
-        range++;
-        if(range == UPDATE_STRUCTURAL_INTERGRITY_RANGE || connected_blocks.Contains(block) || update_structural_integrity_calls == UPDATE_STRUCTURAL_INTERGRITY_MAX_CALLS) {
-            has_support = true;
-            return;
-        }
-        foreach (ConnectionData.Direction direction in block.Connections.All) {
-            Start_Stopwatch("Map.Instance.Get_Block_At");
-            Block b = Map.Instance.Get_Block_At(block.Coordinates.Shift(ConnectionData.To_Coordinate_Delta(direction)));
-            Stop_Stopwatch("Map.Instance.Get_Block_At");
-            if (b == null || b.Is_Air || blocks.Contains(b)) {
-                continue;
-            }
-            if (b.Base_Support || (direction == ConnectionData.Direction.Bottom && b.Base_Pilar_Support)) {
-                has_support = true;
-                return;
-            }
-            Check_Connected_Blocks_Recursive(b, range, ref has_support, ref blocks, connected_blocks);
-        }
-        Stop_Stopwatch("Check_Connected_Blocks_Recursive");
+        return list;
     }
     
     private void Start_Stopwatch_Logging(string title)

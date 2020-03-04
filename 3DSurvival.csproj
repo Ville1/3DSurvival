@@ -139,6 +139,7 @@
     <Compile Include="Assets\src\World\ItemPile.cs" />
     <Compile Include="Assets\src\World\Map.cs" />
     <Compile Include="Assets\src\World\MapObject.cs" />
+    <Compile Include="Assets\src\World\StructuralIntegrityManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
