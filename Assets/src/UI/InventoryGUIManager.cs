@@ -79,7 +79,7 @@ public class InventoryGUIManager : MonoBehaviour {
             if(stacked_items.Value == 1) {
                 item = Inventory.Get_Items(stacked_items.Key)[0];
             } else {
-                item = ItemPrototypes.Instance.Get_Item(stacked_items.Key);
+                item = ItemPrototypes.Instance.Get_Item_Prototype(stacked_items.Key);
             }
             list.Add_Row(item.Internal_Name,
                 new List<ScrollableList.TextData>() {

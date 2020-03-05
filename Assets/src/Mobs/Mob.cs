@@ -135,7 +135,8 @@ public class Mob : Entity
             float tool_efficency = Get_Tool_Efficency(dismantling.Target.Tools_Required_To_Dismantle, out tools_used);
             string verb = dismantling.Target.Dismantle_Verb.Present;
             if (!dismantling.Target.Deal_Damage(delta_time * Dismantling_Speed * dismantling.Target.Dismantle_Speed * tool_efficency, true)) {
-                dismantling.Text = string.Format(PROGRESS_TEXT, string.Format("{0} {1}", dismantling.Target.Dismantle_Verb.Present, dismantling.Target.Name), Helper.Float_To_String(100.0f * (1.0f - dismantling.Target.Relative_HP), 0));
+                dismantling.Relative_Progress = 1.0f - dismantling.Target.Relative_HP;
+                dismantling.Text = string.Format(PROGRESS_TEXT, string.Format("{0} {1}", dismantling.Target.Dismantle_Verb.Present, dismantling.Target.Name), Helper.Float_To_String(100.0f * dismantling.Relative_Progress, 0));
             } else {
                 FloatingMessageManager.Instance.Show(string.Format("{0} finished", verb));
                 dismantling.Finished = true;
@@ -149,7 +150,8 @@ public class Mob : Entity
             List<Tool> tools_used = new List<Tool>();
             float tool_efficency = Get_Tool_Efficency(repairing.Target.Tools_Required_To_Build, out tools_used);
             if (!repairing.Target.RepairOrBuild(delta_time * Building_Speed * tool_efficency)) {
-                repairing.Text = string.Format(PROGRESS_TEXT, string.Format("Repairing {0}", repairing.Target.Name), Helper.Float_To_String(100.0f * repairing.Target.Relative_HP, 0));
+                repairing.Relative_Progress = repairing.Target.Relative_HP;
+                repairing.Text = string.Format(PROGRESS_TEXT, string.Format("Repairing {0}", repairing.Target.Name), Helper.Float_To_String(100.0f * repairing.Relative_Progress, 0));
             } else {
                 FloatingMessageManager.Instance.Show("Repairing finished");
                 repairing.Finished = true;
@@ -163,7 +165,8 @@ public class Mob : Entity
             List<Tool> tools_used = new List<Tool>();
             float tool_efficency = Get_Tool_Efficency(building.Target.Tools_Required_To_Build, out tools_used);
             if (!building.Target.RepairOrBuild(delta_time * Building_Speed * tool_efficency)) {
-                building.Text = string.Format(PROGRESS_TEXT, string.Format("Building {0}", building.Target.Name), Helper.Float_To_String(100.0f * building.Target.Relative_HP, 0));
+                repairing.Relative_Progress = building.Target.Relative_HP;
+                building.Text = string.Format(PROGRESS_TEXT, string.Format("Building {0}", building.Target.Name), Helper.Float_To_String(100.0f * repairing.Relative_Progress, 0));
             } else {
                 FloatingMessageManager.Instance.Show("Building finished");
                 building.Finished = true;
@@ -177,7 +180,8 @@ public class Mob : Entity
             List<Tool> tools_used = new List<Tool>();
             float tool_efficency = Get_Tool_Efficency(harvesting.Target.Tools_Required_To_Harvest, out tools_used);
             if (!harvesting.Target.Harvest(delta_time * Dismantling_Speed * tool_efficency * harvesting.Target.Harvest_Speed, Inventory)) {
-                harvesting.Text = string.Format(PROGRESS_TEXT, string.Format("{0} {1}", harvesting.Target.Harvest_Verb.Present, harvesting.Target.Name), Helper.Float_To_String(100.0f * harvesting.Target.Harvest_Progress_Relative, 0));
+                harvesting.Relative_Progress = harvesting.Target.Harvest_Progress_Relative;
+                harvesting.Text = string.Format(PROGRESS_TEXT, string.Format("{0} {1}", harvesting.Target.Harvest_Verb.Present, harvesting.Target.Name), Helper.Float_To_String(100.0f * harvesting.Relative_Progress, 0));
             } else {
                 FloatingMessageManager.Instance.Show("Harvesting finished");
                 harvesting.Finished = true;
@@ -193,7 +197,8 @@ public class Mob : Entity
             float progress = delta_time * Crafting_Speed * tool_efficency;
             crafting.Progress = Mathf.Clamp(crafting.Progress + progress, 0.0f, crafting.Recipe.Time);
             if(crafting.Progress != crafting.Recipe.Time) {
-                crafting.Text = string.Format(PROGRESS_TEXT, crafting.Recipe.Name, Helper.Float_To_String((crafting.Progress / crafting.Recipe.Time) * 100.0f, 0));
+                crafting.Relative_Progress = crafting.Progress / crafting.Recipe.Time;
+                crafting.Text = string.Format(PROGRESS_TEXT, crafting.Recipe.Name, Helper.Float_To_String(crafting.Relative_Progress * 100.0f, 0));
             } else {
                 bool failed = false;
                 List<long> added_outputs = new List<long>();
@@ -298,6 +303,18 @@ public class Mob : Entity
         }
     }
 
+    public float Current_Action_Progress
+    {
+        get {
+            ActionData data = actions.FirstOrDefault(x => x.Type != ActionType.Moving);
+            if (data != null) {
+                return data.Relative_Progress;
+            }
+            data = actions.FirstOrDefault();
+            return data != null ? data.Relative_Progress : -1.0f;
+        }
+    }
+
     public bool Can_Dismantle(Block block, out string message, bool ignore_reach_and_current_actions = false)
     {
         message = null;
@@ -331,8 +348,10 @@ public class Mob : Entity
         if (!Can_Dismantle(block, out message)) {
             return false;
         }
-        actions.Add(new ActionData(block.Dismantle_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Dismantle_Verb.Present, block.Name),
-            Helper.Float_To_String(100.0f * (1.0f - block.Relative_HP), 0)), ActionType.Dismantle, true, block));
+        ActionData data = new ActionData(block.Dismantle_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Dismantle_Verb.Present, block.Name),
+            Helper.Float_To_String(100.0f * (1.0f - block.Relative_HP), 0)), ActionType.Dismantle, true, block);
+        data.Relative_Progress = 1.0f - block.Relative_HP;
+        actions.Add(data);
         return true;
     }
 
@@ -369,8 +388,10 @@ public class Mob : Entity
         if (!Can_Repair(block, out message)) {
             return false;
         }
-        actions.Add(new ActionData("Repair", string.Format(PROGRESS_TEXT, string.Format("Repairing {0}", block.Name), Helper.Float_To_String(100.0f * block.Relative_HP, 0)),
-            ActionType.Repair, true, block));
+        ActionData data = new ActionData("Repair", string.Format(PROGRESS_TEXT, string.Format("Repairing {0}", block.Name), Helper.Float_To_String(100.0f * block.Relative_HP, 0)),
+            ActionType.Repair, true, block);
+        data.Relative_Progress = block.Relative_HP;
+        actions.Add(data);
         return true;
     }
 
@@ -396,8 +417,10 @@ public class Mob : Entity
             }
         }
         target.Change_To(prototype, true, 0.01f);
-        actions.Add(new ActionData("Build", string.Format(PROGRESS_TEXT, string.Format("Building {0}", prototype.Name), Helper.Float_To_String(100.0f * target.Relative_HP, 0)),
-            ActionType.Build, true, target));
+        ActionData data = new ActionData("Build", string.Format(PROGRESS_TEXT, string.Format("Building {0}", prototype.Name), Helper.Float_To_String(100.0f * target.Relative_HP, 0)),
+            ActionType.Build, true, target);
+        data.Relative_Progress = target.Relative_HP;
+        actions.Add(data);
         return true;
     }
 
@@ -438,8 +461,10 @@ public class Mob : Entity
             block.Harvest(float.MaxValue, Inventory);
             return true;
         }
-        actions.Add(new ActionData(block.Harvest_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Harvest_Verb.Present, block.Name),
-            Helper.Float_To_String(100.0f * block.Harvest_Progress_Relative, 0)), ActionType.Harvest, true, block));
+        ActionData data = new ActionData(block.Harvest_Verb.Present, string.Format(PROGRESS_TEXT, string.Format("{0} {1}", block.Harvest_Verb.Present, block.Name),
+            Helper.Float_To_String(100.0f * block.Harvest_Progress_Relative, 0)), ActionType.Harvest, true, block);
+        data.Relative_Progress = block.Harvest_Progress_Relative;
+        actions.Add(data);
         return true;
     }
 
@@ -498,6 +523,14 @@ public class Mob : Entity
         return true;
     }
 
+    public float Estimated_Crafting_Time(CraftingRecipe recipe)
+    {
+        List<Tool> t;
+        float tool_efficency = Get_Tool_Efficency(recipe.Required_Tools, out t);
+        float efficency = Crafting_Speed * tool_efficency;
+        return efficency > 0.0f ? recipe.Time / efficency : recipe.Time;
+    }
+
     public bool Craft(CraftingRecipe recipe, out string message)
     {
         message = null;
@@ -512,6 +545,7 @@ public class Mob : Entity
         ActionData data = new ActionData(recipe.Name, string.Format(PROGRESS_TEXT, recipe.Name, 0), ActionType.Craft, false, null);
         data.Recipe = recipe;
         data.Progress = 0.0f;
+        data.Relative_Progress = 0.0f;
         actions.Add(data);
         return true;
     }
@@ -520,7 +554,7 @@ public class Mob : Entity
     {
         return Vector3.Distance(block.Position, Position) <= OPERATION_RANGE;
     }
-
+    
     public bool Has_Skills(Dictionary<Skill.SkillId, int> required, out string message)
     {
         message = null;
@@ -538,12 +572,17 @@ public class Mob : Entity
         return Skills.Exists(x => x.Id == id && x.Level >= level);
     }
 
+    public bool Has_Items(string item, int count)
+    {
+        return Inventory.Has_Items(item, count);
+    }
+
     public bool Has_Items(Dictionary<string, int> items, out string message)
     {
         message = null;
         foreach(KeyValuePair<string, int> data in items) {
             if(!Inventory.Has_Items(data.Key, data.Value)) {
-                message = string.Format(MESSAGE_INSUFFICENT_ITEMS, ItemPrototypes.Instance.Get_Item(data.Key).Name, data.Value);
+                message = string.Format(MESSAGE_INSUFFICENT_ITEMS, ItemPrototypes.Instance.Get_Item_Prototype(data.Key).Name, data.Value);
                 return false;
             }
         }
@@ -565,6 +604,11 @@ public class Mob : Entity
             return non_movement_action == null;
         }
         return true;
+    }
+
+    public bool Has_Tool(Tool.ToolType type, int level)
+    {
+        return Inventory.Has_Tool(type, level);
     }
 
     public bool Has_Tools(Dictionary<Tool.ToolType, int> required, out string message)
@@ -622,6 +666,7 @@ public class Mob : Entity
         public bool Moving_Cancels { get; set; }
         public CraftingRecipe Recipe { get; set; }
         public float Progress { get; set; }
+        public float Relative_Progress { get; set; }
 
         public ActionData(string name, string text, ActionType type, bool moving_cancels)
         {
@@ -631,6 +676,8 @@ public class Mob : Entity
             Moving_Cancels = moving_cancels;
             Target = null;
             Finished = false;
+            Progress = -1.0f;
+            Relative_Progress = -1.0f;
         }
 
         public ActionData(string name, string text, ActionType type, bool moving_cancels, Block target)
@@ -641,6 +688,8 @@ public class Mob : Entity
             Moving_Cancels = moving_cancels;
             Target = target;
             Finished = false;
+            Progress = -1.0f;
+            Relative_Progress = -1.0f;
         }
     }
 }

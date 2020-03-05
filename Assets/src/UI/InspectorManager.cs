@@ -58,6 +58,10 @@ public class InspectorManager : MonoBehaviour
         Item_Pile_Data_Container.SetActive(false);
         if (Target is Block) {
             Block block = Target as Block;
+            if (block.Is_Air) {
+                Active = false;
+                return;
+            }
             Block_Data_Container.SetActive(true);
             Name_Text.text = block.Name;
             Image.sprite = SpriteManager.Instance.Get_Sprite(block.UI_Sprite, block.UI_Sprite_Type);

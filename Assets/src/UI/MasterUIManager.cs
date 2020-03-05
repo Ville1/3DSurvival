@@ -61,6 +61,21 @@ public class MasterUIManager : MonoBehaviour
         }
     }
 
+    public bool Window_Is_Open
+    {
+        get {
+            return
+                (MainMenuManager.Instance != null && MainMenuManager.Instance.Active) ||
+                (InventoryGUIManager.Instance != null && InventoryGUIManager.Instance.Active) ||
+                (CraftingMenuManager.Instance != null && CraftingMenuManager.Instance.Active) ||
+                (BuildMenuManager.Instance != null && BuildMenuManager.Instance.Active) ||
+                (SaveGUIManager.Instance != null && SaveGUIManager.Instance.Active) ||
+                (ConfirmationDialogManager.Instance != null && ConfirmationDialogManager.Instance.Active) ||
+                (LoadGUIManager.Instance != null && LoadGUIManager.Instance.Active) ||
+                (NewGameGUIManager.Instance != null && NewGameGUIManager.Instance.Active);
+        }
+    }
+
     public bool Intercept_Keyboard_Input
     {
         get {

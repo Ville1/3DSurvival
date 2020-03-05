@@ -358,6 +358,7 @@ public class Block : MapObject {
                 FloatingMessageManager.Instance.Show(added_items.Parse_Text(true));
             }
             Change_To(prototype);
+            Update_Structural_Integrity();
             if (!ground_drops.Is_Empty) {
                 Block closest = Map.Instance.Find_Closest_Passable_Block(Coordinates);
                 if(closest != null) {
@@ -426,7 +427,7 @@ public class Block : MapObject {
     
     public void Update_Structural_Integrity()
     {
-        if (!Map.Instance.Structural_Integrity_Enabled) {
+        if (!Map.Instance.Structural_Integrity_Enabled || last_connections.All.Count <= 1) {
             return;
         }
         List<Block> connected_blocks = new List<Block>();

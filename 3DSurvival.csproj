@@ -113,6 +113,7 @@
     <Compile Include="Assets\src\UI\ConfirmationDialogManager.cs" />
     <Compile Include="Assets\src\UI\ConsoleManager.cs" />
     <Compile Include="Assets\src\UI\CraftingMenuManager.cs" />
+    <Compile Include="Assets\src\UI\CurrentActionProgressManager.cs" />
     <Compile Include="Assets\src\UI\FloatingMessageManager.cs" />
     <Compile Include="Assets\src\UI\InspectorManager.cs" />
     <Compile Include="Assets\src\UI\InventoryGUIManager.cs" />

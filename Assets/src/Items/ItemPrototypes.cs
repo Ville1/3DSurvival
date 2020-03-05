@@ -61,6 +61,20 @@ public class ItemPrototypes
         return new Item(item);
     }
 
+    public Item Get_Item_Prototype(string internal_name)
+    {
+        Tool tool = (Tool)prototypes.FirstOrDefault(x => x is Tool && x.Internal_Name == internal_name);
+        if (tool != null) {
+            return tool;
+        }
+        Item item = prototypes.FirstOrDefault(x => x.Internal_Name == internal_name);
+        if (item == null) {
+            CustomLogger.Instance.Error(string.Format("Item not found: {0}", internal_name));
+            return null;
+        }
+        return item;
+    }
+
     /// <summary>
     /// Return a clone of prototype
     /// </summary>
@@ -74,6 +88,16 @@ public class ItemPrototypes
             return null;
         }
         return new Tool(tool);
+    }
+    
+    public Tool Get_Tool_Prototype(string internal_name)
+    {
+        Tool tool = (Tool)prototypes.FirstOrDefault(x => x is Tool && x.Internal_Name == internal_name);
+        if (tool == null) {
+            CustomLogger.Instance.Error(string.Format("Tool not found: {0}", internal_name));
+            return null;
+        }
+        return tool;
     }
 
     public bool Is_Tool(string internal_name)
